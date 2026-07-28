@@ -50,6 +50,8 @@
             <option value="In Progress">In Progress</option>
 
             <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+
 
         </select>
 

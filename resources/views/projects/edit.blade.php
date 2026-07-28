@@ -76,6 +76,11 @@
                 Completed
             </option>
 
+            <option value="Cancelled"
+                {{ $project->status == 'Cancelled' ? 'selected' : '' }}>
+                  Cancelled
+</option>
+
         </select>
 
     </div>

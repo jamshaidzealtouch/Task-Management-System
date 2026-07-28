@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    // Show Login Page
+   
     public function index()
     {
         return view('auth.login');
     }
 
-    // Check Login
+  
     public function check(Request $request)
     {
         $request->validate([

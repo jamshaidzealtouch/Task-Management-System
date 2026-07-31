@@ -12,7 +12,7 @@ class StoreProjectRequest extends FormRequest
         return true;
     }
 
-    
+    //rule
     public function rules(): array
     {
         return [

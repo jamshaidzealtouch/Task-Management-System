@@ -9,9 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         DB::statement("
-            ALTER TABLE projects
-            MODIFY COLUMN status ENUM('Pending','In_Progress','Cancelled',Completed') NOT NULL
-        ");
+    ALTER TABLE projects
+    MODIFY COLUMN status ENUM(
+        'Pending',
+        'In Progress',
+        'Completed',
+        'Cancelled'
+    ) NOT NULL
+");
     }
 
 

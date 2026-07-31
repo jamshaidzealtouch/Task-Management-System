@@ -105,19 +105,19 @@
 
                             <div class="d-flex justify-content-center gap-2">
 
-                                <!-- View -->
-                                <a href="{{ route('projects.show', $project->id) }}"
+                               
+                                <a href="{{ route('projects.tasks.index', $project->id) }}"
                                    class="btn btn-info btn-sm">
                                     View
                                 </a>
 
-                                <!-- Edit -->
+                             
                                 <a href="{{ route('projects.edit', $project->id) }}"
                                    class="btn btn-warning btn-sm">
                                     Edit
                                 </a>
 
-                                <!-- Delete -->
+                           
                                 <form action="{{ route('projects.destroy', $project->id) }}"
                                       method="POST">
 

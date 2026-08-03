@@ -12,7 +12,7 @@ class LoginRequest extends FormRequest
         return true;
     }
 
-    
+    //login validation 
     public function rules(): array
     {
         return [

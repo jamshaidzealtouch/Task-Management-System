@@ -12,7 +12,7 @@ class UpdateTaskRequest extends FormRequest
         return true;
     }
 
-    
+    //validation rules
     public function rules(): array
     {
         return [

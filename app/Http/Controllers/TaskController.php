@@ -11,7 +11,7 @@ use App\Models\Task;
 
 class TaskController extends Controller
 {
-   
+   //show all data
     public function index(Project $project)
     {
         $tasks = $project->tasks;
@@ -20,12 +20,13 @@ class TaskController extends Controller
     }
 
     
+    //create new user data
     public function create(Project $project)
     {
         return view('tasks.create', compact('project'));
     }
 
-   
+   // add new user data
     public function store(StoreTaskRequest $request, Project $project)
     {
         $data = $request->validated();
@@ -41,6 +42,7 @@ class TaskController extends Controller
 
     
 
+    //show data 
     public function show(Project $project, Task $task)
     {
         return view('tasks.show', compact('project', 'task'));

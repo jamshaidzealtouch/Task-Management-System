@@ -16,18 +16,14 @@ class RegisterController extends Controller
 
     
     public function store(RegisterRequest $request)
-    {
-        User::create([
+{
+    $data = $request->validated();
 
-            'name' => $request->name,
+    $data['password'] = Hash::make($data['password']);
 
-            'email' => $request->email,
+    User::create($data);
 
-            'password' => Hash::make($request->password),
-
-        ]);
-
-        return redirect('/login')
-            ->with('success', 'Registration successful. Please login.');
-    }
+    return redirect('/login')
+        ->with('success', 'Registration successful. Please login.');
+}
 }

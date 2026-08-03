@@ -22,24 +22,16 @@ class ProjectController extends Controller
         return view('projects.create');
     }
 
+
+    
     public function store(StoreProjectRequest $request)
     {
-        Project::create([
-
-            'user_id' => session('user_id'),
-
-            'title' => $request->title,
-
-            'description' => $request->description,
-
-            'start_date' => $request->start_date,
-
-            'end_date' => $request->end_date,
-
-            'status' => $request->status,
-
-        ]);
-
+        $data = $request->validated();
+    
+        $data['user_id'] = session('user_id');
+    
+        Project::create($data);
+    
         return redirect()
             ->route('projects.index')
             ->with('success', 'Project added successfully.');
@@ -66,30 +58,19 @@ class ProjectController extends Controller
 
     
     public function update(UpdateProjectRequest $request, $id)
-    {
-        $project = Project::where('id', $id)
-            ->where('user_id', session('user_id'))
-            ->firstOrFail();
+{
 
-        $project->update([
+    //for example ID = 5  SELECT * FROM project WHERE id = 5;
+    $project = Project::where('id', $id)
+        ->where('user_id', session('user_id'))
+        ->firstOrFail();
 
-            'title' => $request->title,
+    $project->update($request->validated());
 
-            'description' => $request->description,
-
-            'start_date' => $request->start_date,
-
-            'end_date' => $request->end_date,
-
-            'status' => $request->status,
-
-        ]);
-
-        return redirect()
-            ->route('projects.index')
-            ->with('success', 'Project updated successfully.');
-    }
-
+    return redirect()
+        ->route('projects.index')
+        ->with('success', 'Project updated successfully.');
+}
    
     public function destroy($id)
     {

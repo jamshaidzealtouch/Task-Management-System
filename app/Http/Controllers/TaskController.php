@@ -28,18 +28,12 @@ class TaskController extends Controller
    
     public function store(StoreTaskRequest $request, Project $project)
     {
-        
-        Task::create([
-            'project_id'  => $project->id,
-            'title'       => $request->title,
-            'description' => $request->description,
-            'due_date'    => $request->due_date,
-            'priority'    => $request->priority,
-            'status'      => $request->status,
-        ]);
-        
-
-
+        $data = $request->validated();
+    
+        $data['project_id'] = $project->id;
+    
+        Task::create($data);
+    
         return redirect()
             ->route('projects.tasks.index', $project->id)
             ->with('success', 'Task added successfully.');
@@ -59,27 +53,17 @@ class TaskController extends Controller
 }
 
   
-
+//update data
 public function update(UpdateTaskRequest $request, Project $project, Task $task)
 {
-    $task->update([
-
-        'title' => $request->title,
-
-        'description' => $request->description,
-
-        'due_date' => $request->due_date,
-
-        'priority' => $request->priority,
-
-        'status' => $request->status,
-
-    ]);
+    $task->update($request->validated());
 
     return redirect()
         ->route('projects.tasks.index', $project->id)
         ->with('success', 'Task updated successfully.');
 }
+
+
 
     
     public function destroy(Project $project, Task $task)

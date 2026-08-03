@@ -23,7 +23,7 @@ class ProjectController extends Controller
     }
 
 
-    
+
     public function store(StoreProjectRequest $request)
     {
         $data = $request->validated();
@@ -38,32 +38,35 @@ class ProjectController extends Controller
     }
 
    
-    public function show($id)
-    {
-        $project = Project::where('id', $id)
-            ->where('user_id', session('user_id'))
-            ->firstOrFail();
 
-        return view('projects.show', compact('project'));
+
+public function show(Project $project)
+{
+    if ($project->user_id != session('user_id')) {
+        abort(404);
     }
 
-    public function edit($id)
-    {
-        $project = Project::where('id', $id)
-            ->where('user_id', session('user_id'))
-            ->firstOrFail();
+    return view('projects.show', compact('project'));
+}
 
-        return view('projects.edit', compact('project'));
+
+public function edit(Project $project)
+{
+    if ($project->user_id != session('user_id')) {
+        abort(404);
     }
+
+    return view('projects.edit', compact('project'));
+}
+
+
 
     
-    public function update(UpdateProjectRequest $request, $id)
+public function update(UpdateProjectRequest $request, Project $project)
 {
-
-    //for example ID = 5  SELECT * FROM project WHERE id = 5;
-    $project = Project::where('id', $id)
-        ->where('user_id', session('user_id'))
-        ->firstOrFail();
+    if ($project->user_id != session('user_id')) {
+        abort(404);
+    }
 
     $project->update($request->validated());
 
@@ -72,16 +75,18 @@ class ProjectController extends Controller
         ->with('success', 'Project updated successfully.');
 }
    
-    public function destroy($id)
-    {
-        $project = Project::where('id', $id)
-            ->where('user_id', session('user_id'))
-            ->firstOrFail();
-
-        $project->delete();
-
-        return redirect()
-            ->route('projects.index')
-            ->with('success', 'Project deleted successfully.');
+public function destroy(Project $project)
+{
+    if ($project->user_id != session('user_id')) {
+        abort(404);
     }
+
+    $project->delete();
+
+    return redirect()
+        ->route('projects.index')
+        ->with('success', 'Project deleted successfully.');
+}
+
+
 }

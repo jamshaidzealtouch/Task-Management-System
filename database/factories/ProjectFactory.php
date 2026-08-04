@@ -1,7 +1,7 @@
 <?php
 
 namespace Database\Factories;
-
+use App\Enums\ProjectStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProjectFactory extends Factory
@@ -17,12 +17,9 @@ class ProjectFactory extends Factory
             'description' => $this->faker->paragraph(),
             'start_date' => $startDate->format('Y-m-d'),
             'end_date' => $endDate->format('Y-m-d'),
-            'status' => $this->faker->randomElement([
-                'Pending',
-                'In Progress',
-                'Completed',
-                'Cancelled',
-            ]),
+           'status' => fake()->randomElement(
+    array_column(ProjectStatus::cases(), 'value')
+),
         ];
     }
 }

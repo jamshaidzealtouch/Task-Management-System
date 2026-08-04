@@ -37,12 +37,11 @@
 
             @endif
 
-
             <form action="{{ route('projects.tasks.store', $project->id) }}" method="POST">
 
                 @csrf
 
-               
+                {{-- Task Title --}}
                 <div class="mb-3">
 
                     <label class="form-label">Task Title</label>
@@ -55,7 +54,7 @@
 
                 </div>
 
-            
+                {{-- Description --}}
                 <div class="mb-3">
 
                     <label class="form-label">Description</label>
@@ -67,7 +66,7 @@
 
                 </div>
 
-             
+                {{-- Due Date --}}
                 <div class="mb-3">
 
                     <label class="form-label">Due Date</label>
@@ -80,7 +79,7 @@
 
                 </div>
 
-                
+                {{-- Priority --}}
                 <div class="mb-3">
 
                     <label class="form-label">Priority</label>
@@ -91,17 +90,23 @@
 
                         <option value="">Select Priority</option>
 
-                        <option value="Low">Low</option>
+                        @foreach(App\Enums\TaskPriority::cases() as $priority)
 
-                        <option value="Medium">Medium</option>
+                            <option
+                                value="{{ $priority->value }}"
+                                {{ old('priority') == $priority->value ? 'selected' : '' }}>
 
-                        <option value="High">High</option>
+                                {{ ucfirst($priority->value) }}
+
+                            </option>
+
+                        @endforeach
 
                     </select>
 
                 </div>
 
-            
+                {{-- Status --}}
                 <div class="mb-3">
 
                     <label class="form-label">Status</label>
@@ -112,11 +117,17 @@
 
                         <option value="">Select Status</option>
 
-                        <option value="To_Do">to_do</option>
+                        @foreach(App\Enums\TaskStatus::cases() as $status)
 
-                        <option value="In_Progress">In_Progress</option>
+                            <option
+                                value="{{ $status->value }}"
+                                {{ old('status') == $status->value ? 'selected' : '' }}>
 
-                        <option value="Completed">Completed</option>
+                                {{ ucwords(str_replace('_', ' ', $status->value)) }}
+
+                            </option>
+
+                        @endforeach
 
                     </select>
 

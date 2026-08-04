@@ -2,6 +2,10 @@
 
 @section('content')
 
+@php
+    use App\Enums\ProjectStatus;
+@endphp
+
 <div class="container mt-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -16,11 +20,15 @@
 
     {{-- Success Message --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" id="success-alert" role="alert">
+        <div class="alert alert-success alert-dismissible fade show"
+             id="success-alert"
+             role="alert">
 
             {{ session('success') }}
 
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"></button>
 
         </div>
     @endif
@@ -63,37 +71,23 @@
 
                         <td class="text-center">
 
-                            @if($project->status == 'Pending')
+                            @php
+                                $badge = match ($project->status) {
 
-                                <span class="badge bg-warning text-dark">
-                                    Pending
-                                </span>
+                                    ProjectStatus::Pending => 'warning text-dark',
 
-                            @elseif($project->status == 'In Progress')
+                                    ProjectStatus::InProgress => 'primary',
 
-                                <span class="badge bg-primary">
-                                    In Progress
-                                </span>
+                                    ProjectStatus::Completed => 'success',
 
-                            @elseif($project->status == 'Completed')
+                                    ProjectStatus::Cancelled => 'danger',
 
-                                <span class="badge bg-success">
-                                    Completed
-                                </span>
+                                };
+                            @endphp
 
-                            @elseif($project->status == 'Cancelled')
-
-                                <span class="badge bg-danger">
-                                    Cancelled
-                                </span>
-
-                            @else
-
-                                <span class="badge bg-secondary">
-                                    Unknown
-                                </span>
-
-                            @endif
+                            <span class="badge bg-{{ $badge }}">
+                                {{ ucwords(str_replace('_', ' ', $project->status->value)) }}
+                            </span>
 
                         </td>
 
@@ -105,19 +99,16 @@
 
                             <div class="d-flex justify-content-center gap-2">
 
-                               
                                 <a href="{{ route('projects.tasks.index', $project->id) }}"
                                    class="btn btn-info btn-sm">
                                     View
                                 </a>
 
-                             
                                 <a href="{{ route('projects.edit', $project->id) }}"
                                    class="btn btn-warning btn-sm">
                                     Edit
                                 </a>
 
-                           
                                 <form action="{{ route('projects.destroy', $project->id) }}"
                                       method="POST">
 
@@ -127,7 +118,9 @@
                                     <button type="submit"
                                             class="btn btn-danger btn-sm"
                                             onclick="return confirm('Are you sure you want to delete this project?')">
+
                                         Delete
+
                                     </button>
 
                                 </form>
@@ -142,8 +135,11 @@
 
                     <tr>
 
-                        <td colspan="9" class="text-center text-danger py-4">
+                        <td colspan="9"
+                            class="text-center text-danger py-4">
+
                             No Projects Found
+
                         </td>
 
                     </tr>
@@ -158,23 +154,27 @@
 
 </div>
 
-{{-- Auto Hide Success Alert After 5 Seconds --}}
+{{-- Auto Hide Success Alert --}}
 <script>
-    setTimeout(function () {
 
-        let alert = document.getElementById('success-alert');
+setTimeout(function () {
 
-        if (alert) {
+    let alert = document.getElementById('success-alert');
 
-            alert.classList.remove('show');
+    if (alert) {
 
-            setTimeout(function () {
-                alert.remove();
-            }, 500);
+        alert.classList.remove('show');
 
-        }
+        setTimeout(function () {
 
-    }, 5000);
+            alert.remove();
+
+        }, 500);
+
+    }
+
+}, 5000);
+
 </script>
 
 @endsection

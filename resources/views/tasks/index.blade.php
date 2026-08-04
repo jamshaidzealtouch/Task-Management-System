@@ -2,6 +2,11 @@
 
 @section('content')
 
+@php
+    use App\Enums\TaskStatus;
+    use App\Enums\TaskPriority;
+@endphp
+
 <div class="container mt-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -74,39 +79,49 @@
 
                     <td>{{ $task->due_date }}</td>
 
+                    {{-- Priority --}}
                     <td class="text-center">
 
-                        @if($task->priority == 'Low')
+                        @php
+                            $priorityBadge = match ($task->priority) {
 
-                            <span class="badge bg-success">Low</span>
+                                TaskPriority::Low => 'success',
 
-                        @elseif($task->priority == 'Medium')
+                                TaskPriority::Medium => 'warning text-dark',
 
-                            <span class="badge bg-warning text-dark">Medium</span>
+                                TaskPriority::High => 'danger',
 
-                        @else
+                                default => 'secondary',
 
-                            <span class="badge bg-danger">High</span>
+                            };
+                        @endphp
 
-                        @endif
+                        <span class="badge bg-{{ $priorityBadge }}">
+                            {{ ucwords($task->priority->value) }}
+                        </span>
 
                     </td>
 
+                    {{-- Status --}}
                     <td class="text-center">
 
-                        @if($task->status == 'To_Do')
+                        @php
+                            $statusBadge = match ($task->status) {
 
-                            <span class="badge bg-secondary">To Do</span>
+                                TaskStatus::ToDo => 'secondary',
 
-                        @elseif($task->status == 'In_Progress')
+                                TaskStatus::InProgress => 'primary',
 
-                            <span class="badge bg-primary">In Progress</span>
+                                TaskStatus::Completed => 'success',
 
-                        @else
+                                default => 'dark',
 
-                            <span class="badge bg-success">Completed</span>
+                            };
+                        @endphp
 
-                        @endif
+                        <span class="badge bg-{{ $statusBadge }}">
+                            {{ ucwords(str_replace('_', ' ', $task->status->value)) }}
+                        </span>
 
                     </td>
 

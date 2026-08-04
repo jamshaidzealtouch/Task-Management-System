@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\ProjectStatus;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Project extends Model
 {
@@ -24,6 +26,14 @@ class Project extends Model
         'status',
 
     ];
+
+
+
+protected $casts = [
+
+    'status' => ProjectStatus::class,
+
+];
 
     public function user()
     {

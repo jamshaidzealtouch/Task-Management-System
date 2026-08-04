@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\ProjectStatus;
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateProjectRequest extends FormRequest
 {
@@ -25,7 +27,10 @@ class UpdateProjectRequest extends FormRequest
 
             'end_date' => 'required|date|after_or_equal:start_date',
 
-            'status' => 'required|in:Pending,In Progress,Completed,Cancelled',
+            'status' => [
+    'required',
+    new Enum(ProjectStatus::class),
+],
 
         ];
     }

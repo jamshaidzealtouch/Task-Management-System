@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Enums\TaskStatus;
+use App\Enums\TaskPriority;
 
 class Task extends Model
 {
@@ -17,6 +19,13 @@ class Task extends Model
         'due_date',
         'priority',
         'status',
+
+    ];
+    protected $casts = [
+
+        'status' => TaskStatus::class,
+
+        'priority' => TaskPriority::class,
 
     ];
 

@@ -2,17 +2,18 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateTaskRequest extends FormRequest
 {
-    
     public function authorize(): bool
     {
         return true;
     }
 
-    //validation rules
     public function rules(): array
     {
         return [
@@ -23,9 +24,15 @@ class UpdateTaskRequest extends FormRequest
 
             'due_date' => 'required|date',
 
-            'priority' => 'required|in:Low,Medium,High',
+            'priority' => [
+                'required',
+                new Enum(TaskPriority::class),
+            ],
 
-            'status' => 'required|in:To_Do,In_Progress,Completed',
+            'status' => [
+                'required',
+                new Enum(TaskStatus::class),
+            ],
 
         ];
     }

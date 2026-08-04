@@ -2,13 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Project;
+use Illuminate\Database\Seeder;
 
 class ProjectSeeder extends Seeder
 {
     public function run(): void
     {
-        Project::factory()->count(7)->create();
+        Project::factory()
+            ->count(7)
+            ->hasTasks(5)
+            ->create();
     }
 }

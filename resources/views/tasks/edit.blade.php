@@ -45,7 +45,7 @@
                 @csrf
                 @method('PUT')
 
-               
+                {{-- Task Title --}}
                 <div class="mb-3">
 
                     <label class="form-label">Task Title</label>
@@ -58,7 +58,7 @@
 
                 </div>
 
-                
+                {{-- Description --}}
                 <div class="mb-3">
 
                     <label class="form-label">Description</label>
@@ -70,7 +70,7 @@
 
                 </div>
 
-               
+                {{-- Due Date --}}
                 <div class="mb-3">
 
                     <label class="form-label">Due Date</label>
@@ -83,35 +83,47 @@
 
                 </div>
 
-               
+                {{-- Priority --}}
                 <div class="mb-3">
 
                     <label class="form-label">Priority</label>
 
                     <select name="priority" class="form-select">
 
-                        <option value="Low" {{ $task->priority == 'Low' ? 'selected' : '' }}>Low</option>
+                        @foreach(App\Enums\TaskPriority::cases() as $priority)
 
-                        <option value="Medium" {{ $task->priority == 'Medium' ? 'selected' : '' }}>Medium</option>
+                            <option
+                                value="{{ $priority->value }}"
+                                {{ old('priority', $task->priority) == $priority->value ? 'selected' : '' }}>
 
-                        <option value="High" {{ $task->priority == 'High' ? 'selected' : '' }}>High</option>
+                                {{ ucfirst($priority->value) }}
+
+                            </option>
+
+                        @endforeach
 
                     </select>
 
                 </div>
 
-                
+                {{-- Status --}}
                 <div class="mb-3">
 
                     <label class="form-label">Status</label>
 
                     <select name="status" class="form-select">
 
-                        <option value="To_Do" {{ $task->status == 'To_Do' ? 'selected' : '' }}>To Do</option>
+                        @foreach(App\Enums\TaskStatus::cases() as $status)
 
-                        <option value="In_Progress" {{ $task->status == 'In_Progress' ? 'selected' : '' }}>In Progress</option>
+                            <option
+                                value="{{ $status->value }}"
+                                {{ old('status', $task->status) == $status->value ? 'selected' : '' }}>
 
-                        <option value="Completed" {{ $task->status == 'Completed' ? 'selected' : '' }}>Completed</option>
+                                {{ ucwords(str_replace('_', ' ', $status->value)) }}
+
+                            </option>
+
+                        @endforeach
 
                     </select>
 

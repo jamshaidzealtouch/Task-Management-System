@@ -7,13 +7,16 @@ use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\Organization;
 
+
 class ProjectController extends Controller
 {
    
     public function index()
     {
-        $projects = Project::where('user_id', session('user_id'))->get();
-
+        $projects = Project::with('organization')
+            ->where('user_id', session('user_id'))
+            ->get();
+    
         return view('projects.index', compact('projects'));
     }
 
@@ -59,9 +62,10 @@ public function edit(Project $project)
         abort(404);
     }
 
-    return view('projects.edit', compact('project'));
-}
+    $organizations = Organization::where('owner_id', session('user_id'))->get();
 
+    return view('projects.edit', compact('project', 'organizations'));
+}
 
 
     

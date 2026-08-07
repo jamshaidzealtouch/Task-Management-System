@@ -1,61 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Management System</title>
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
     <div class="container">
 
-        <a class="navbar-brand" href="/home">
+        <a class="navbar-brand" href="{{ route('home') }}">
             Task Management System
         </a>
 
-        <div>
-            <a href="/home" class="btn btn-outline-light me-2">
+        <div class="d-flex align-items-center">
+
+            {{-- Home --}}
+            <a href="{{ route('home') }}"
+               class="btn btn-outline-light me-2">
                 Home
             </a>
 
-            <a href="/about" class="btn btn-outline-light me-2">
+            {{-- About --}}
+            <a href="{{ route('about') }}"
+               class="btn btn-outline-light me-2">
                 About
             </a>
 
-            <a href="{{ route('projects.index') }}" class="btn btn-outline-light">
-                Projects
-            </a>
+            {{-- Admin & Manager --}}
+            @if(session('user_role') == 'admin' || session('user_role') == 'manager')
 
+                <a href="{{ route('organizations.index') }}"
+                   class="btn btn-outline-light me-2">
+                    Organizations
+                </a>
 
+                <a href="{{ route('projects.index') }}"
+                   class="btn btn-outline-light me-2">
+                    Projects
+                </a>
+
+            @endif
+
+            {{-- Employee --}}
+            @if(session('user_role') == 'employee')
+
+                <a href="#"
+                   class="btn btn-outline-light me-2">
+                    My Tasks
+                </a>
+
+            @endif
+
+            {{-- Logged In User --}}
+            <span class="text-white me-3">
+                {{ session('user_name') }}
+                ({{ ucfirst(session('user_role')) }})
+            </span>
+
+            {{-- Logout --}}
             <form action="{{ route('logout') }}"
-          method="POST"
-          class="d-inline">
+                  method="POST"
+                  class="d-inline">
 
-        @csrf
+                @csrf
 
-        <button type="submit"
-                class="btn btn-danger">
-            Logout
-        </button>
+                <button type="submit"
+                        class="btn btn-danger">
+                    Logout
+                </button>
 
-    </form>
+            </form>
+
         </div>
 
     </div>
+
 </nav>
-
-<div class="container py-5">
-    @yield('content')
-</div>
-
-<footer class="bg-dark text-white text-center py-3">
-    © 2026 Task Management System
-</footer>
-
-</body>
-</html>

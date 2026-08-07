@@ -8,40 +8,82 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\OrganizationController;
 
+
+
 // Login
 Route::get('/', [LoginController::class, 'index']);
-Route::get('/login', [LoginController::class, 'index'])->name('login');
-Route::post('/login', [LoginController::class, 'check'])->name('login.check');
+
+Route::get('/login', [LoginController::class, 'index'])
+    ->name('login');
+
+Route::post('/login', [LoginController::class, 'check'])
+    ->name('login.check');
 
 // Register
-Route::get('/register', [RegisterController::class, 'index'])->name('register');
-Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+Route::get('/register', [RegisterController::class, 'index'])
+    ->name('register');
 
-// Logout
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::post('/register', [RegisterController::class, 'store'])
+    ->name('register.store');
 
-// Static Pages
-Route::get('/home', [HomeController::class, 'home'])->name('home');
-Route::get('/about', [HomeController::class, 'about'])->name('about');
 
-// Organizations
-Route::resource('organizations', OrganizationController::class);
 
-// Projects
-Route::resource('projects', ProjectController::class);
 
-// Tasks (Nested Resource with Scoped Route Model Binding)
-Route::resource('projects.tasks', TaskController::class)
-    ->scoped();
+Route::middleware(['auth.custom', 'employee'])->group(function () {
 
-// Soft Deleted Tasks
-Route::get(
-    'projects/{project}/tasks/trash',
-    [TaskController::class, 'trash']
-)->name('projects.tasks.trash');
+    // Logout
+    Route::post('/logout', [LoginController::class, 'logout'])
+        ->name('logout');
 
-// Restore Soft Deleted Task
-Route::patch(
-    'projects/{project}/tasks/{task}/restore',
-    [TaskController::class, 'restore']
-)->name('projects.tasks.restore');
+    // Static Pages
+    Route::get('/home', [HomeController::class, 'home'])
+        ->name('home');
+
+    Route::get('/about', [HomeController::class, 'about'])
+        ->name('about');
+
+});
+
+
+
+
+Route::middleware(['auth.custom', 'manager'])->group(function () {
+
+    // Organizations
+    Route::resource('organizations', OrganizationController::class);
+
+    // Projects
+    Route::resource('projects', ProjectController::class);
+
+    // Tasks
+    Route::resource('projects.tasks', TaskController::class)
+        ->scoped();
+
+    // Soft Deleted Tasks
+    Route::get(
+        'projects/{project}/tasks/trash',
+        [TaskController::class, 'trash']
+    )->name('projects.tasks.trash');
+
+    // Restore Soft Deleted Task
+    Route::patch(
+        'projects/{project}/tasks/{task}/restore',
+        [TaskController::class, 'restore']
+    )->name('projects.tasks.restore');
+
+});
+
+
+
+
+Route::middleware(['auth.custom', 'admin'])->group(function () {
+
+    // User Management
+
+    // Role Management
+
+    // Reports
+
+    // (Will implement later)
+
+});

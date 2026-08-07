@@ -6,138 +6,163 @@
     use App\Enums\ProjectStatus;
 @endphp
 
-<div class="container mt-4">
+<div class="card shadow">
 
-    <div class="card shadow">
+    <div class="card-header">
 
-        <div class="card-header">
+        <h3>Edit Project</h3>
 
-            <h3>Edit Project</h3>
+    </div>
 
-        </div>
+    <div class="card-body">
 
-        <div class="card-body">
+        {{-- Validation Errors --}}
+        @if ($errors->any())
 
-            {{-- Validation Errors --}}
-            @if ($errors->any())
+            <div class="alert alert-danger">
 
-                <div class="alert alert-danger">
+                <strong>Please fix the following errors:</strong>
 
-                    <strong>Please fix the following errors:</strong>
+                <ul class="mb-0 mt-2">
 
-                    <ul class="mb-0 mt-2">
+                    @foreach ($errors->all() as $error)
 
-                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
 
-                            <li>{{ $error }}</li>
+                    @endforeach
 
-                        @endforeach
+                </ul>
 
-                    </ul>
+            </div>
 
-                </div>
+        @endif
 
-            @endif
+        <form action="{{ route('projects.update', $project->id) }}" method="POST">
 
-            <form action="{{ route('projects.update', $project->id) }}" method="POST">
+            @csrf
+            @method('PUT')
 
-                @csrf
-                @method('PUT')
+            {{-- Organization --}}
+            <div class="mb-3">
 
-                {{-- Project Title --}}
-                <div class="mb-3">
+                <label class="form-label">Organization</label>
 
-                    <label class="form-label">Project Title</label>
+                <select
+                    name="organization_id"
+                    class="form-select">
 
-                    <input
-                        type="text"
-                        name="title"
-                        class="form-control"
-                        value="{{ old('title', $project->title) }}">
+                    <option value="">
+                        Select Organization
+                    </option>
 
-                </div>
+                    @foreach($organizations as $organization)
 
-                {{-- Description --}}
-                <div class="mb-3">
+                        <option
+                            value="{{ $organization->id }}"
+                            {{ old('organization_id', $project->organization_id) == $organization->id ? 'selected' : '' }}>
 
-                    <label class="form-label">Description</label>
+                            {{ $organization->name }}
 
-                    <textarea
-                        name="description"
-                        class="form-control"
-                        rows="4">{{ old('description', $project->description) }}</textarea>
+                        </option>
 
-                </div>
+                    @endforeach
 
-                {{-- Start Date --}}
-                <div class="mb-3">
+                </select>
 
-                    <label class="form-label">Start Date</label>
+            </div>
 
-                    <input
-                        type="date"
-                        name="start_date"
-                        class="form-control"
-                        value="{{ old('start_date', $project->start_date) }}">
+            {{-- Project Title --}}
+            <div class="mb-3">
 
-                </div>
+                <label class="form-label">Project Title</label>
 
-                {{-- End Date --}}
-                <div class="mb-3">
+                <input
+                    type="text"
+                    name="title"
+                    class="form-control"
+                    value="{{ old('title', $project->title) }}">
 
-                    <label class="form-label">End Date</label>
+            </div>
 
-                    <input
-                        type="date"
-                        name="end_date"
-                        class="form-control"
-                        value="{{ old('end_date', $project->end_date) }}">
+            {{-- Description --}}
+            <div class="mb-3">
 
-                </div>
+                <label class="form-label">Description</label>
 
-                {{-- Status --}}
-                <div class="mb-3">
+                <textarea
+                    name="description"
+                    class="form-control"
+                    rows="4">{{ old('description', $project->description) }}</textarea>
 
-                    <label class="form-label">Status</label>
+            </div>
 
-                    <select
-                        name="status"
-                        class="form-select">
+            {{-- Start Date --}}
+            <div class="mb-3">
 
-                        @foreach(ProjectStatus::cases() as $status)
+                <label class="form-label">Start Date</label>
 
-                            <option
-                                value="{{ $status->value }}"
-                                {{ old('status', $project->status->value) == $status->value ? 'selected' : '' }}>
+                <input
+                    type="date"
+                    name="start_date"
+                    class="form-control"
+                    value="{{ old('start_date', $project->start_date) }}">
 
-                                {{ ucwords(str_replace('_', ' ', $status->value)) }}
+            </div>
 
-                            </option>
+            {{-- End Date --}}
+            <div class="mb-3">
 
-                        @endforeach
+                <label class="form-label">End Date</label>
 
-                    </select>
+                <input
+                    type="date"
+                    name="end_date"
+                    class="form-control"
+                    value="{{ old('end_date', $project->end_date) }}">
 
-                </div>
+            </div>
 
-                <button
-                    type="submit"
-                    class="btn btn-primary">
+            {{-- Status --}}
+            <div class="mb-3">
 
-                    Update Project
+                <label class="form-label">Status</label>
 
-                </button>
+                <select
+                    name="status"
+                    class="form-select">
 
-                <a href="{{ route('projects.index') }}"
-                   class="btn btn-secondary">
+                    @foreach(ProjectStatus::cases() as $status)
 
-                    Back
+                        <option
+                            value="{{ $status->value }}"
+                            {{ old('status', $project->status->value ?? $project->status) == $status->value ? 'selected' : '' }}>
 
-                </a>
+                            {{ ucwords(str_replace('_', ' ', $status->value)) }}
 
-            </form>
+                        </option>
 
-        </div>
+                    @endforeach
+
+                </select>
+
+            </div>
+
+            <button
+                type="submit"
+                class="btn btn-primary">
+
+                Update Project
+
+            </button>
+
+            <a href="{{ route('projects.index') }}"
+               class="btn btn-secondary">
+
+                Back
+
+            </a>
+
+        </form>
 
     </div>
 

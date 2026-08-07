@@ -6,7 +6,9 @@ class HomeController extends Controller
 {
     public function home()
     {
-        return view('home');
+        $userRole = session('user_role');
+    
+        return view('home', compact('userRole'));
     }
 
     public function about()

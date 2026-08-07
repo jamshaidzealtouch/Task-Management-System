@@ -34,9 +34,11 @@ class LoginController extends Controller
         session([
 
             'user_id' => $user->id,
-
+        
             'user_name' => $user->name,
-
+        
+            'user_role' => $user->role,
+        
         ]);
 
         return redirect('/home');
@@ -47,6 +49,18 @@ class LoginController extends Controller
     {
         session()->flush();
 
-        return redirect('/login');
+        if ($user->role->value == 'admin') {
+
+            return redirect()->route('home');
+        
+        }
+        
+        if ($user->role->value == 'manager') {
+        
+            return redirect()->route('projects.index');
+        
+        }
+        
+        return redirect()->route('home');
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\OrganizationController;
 
 // Login
 Route::get('/', [LoginController::class, 'index']);
@@ -16,9 +17,15 @@ Route::post('/login', [LoginController::class, 'check'])->name('login.check');
 Route::get('/register', [RegisterController::class, 'index'])->name('register');
 Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 
+// Logout
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
 // Static Pages
 Route::get('/home', [HomeController::class, 'home'])->name('home');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
+
+// Organizations
+Route::resource('organizations', OrganizationController::class);
 
 // Projects
 Route::resource('projects', ProjectController::class);

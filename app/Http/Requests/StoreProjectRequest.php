@@ -26,6 +26,7 @@ class StoreProjectRequest extends FormRequest
             'start_date' => 'required|date',
 
             'end_date' => 'required|date|after_or_equal:start_date',
+            'organization_id' => 'required|exists:organizations,id',
 
             'status' => [
             'required',

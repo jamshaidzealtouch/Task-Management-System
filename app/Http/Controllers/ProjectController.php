@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
+use App\Models\Organization;
 
 class ProjectController extends Controller
 {
@@ -19,7 +20,9 @@ class ProjectController extends Controller
    
     public function create()
     {
-        return view('projects.create');
+        $organizations = Organization::where('owner_id', session('user_id'))->get();
+    
+        return view('projects.create', compact('organizations'));
     }
 
 
@@ -34,7 +37,7 @@ class ProjectController extends Controller
     
         return redirect()
             ->route('projects.index')
-            ->with('success', 'Project added successfully.');
+            ->with('success', 'Project created successfully.');
     }
 
    

@@ -14,17 +14,19 @@ class Project extends Model
     protected $fillable = [
 
         'user_id',
-
+    
+        'organization_id',
+    
         'title',
-
+    
         'description',
-
+    
         'start_date',
-
+    
         'end_date',
-
+    
         'status',
-
+    
     ];
 
 
@@ -44,4 +46,9 @@ protected $casts = [
     {
         return $this->hasMany(Task::class);
     }
+
+    public function organization()
+{
+    return $this->belongsTo(Organization::class);
+}
 }

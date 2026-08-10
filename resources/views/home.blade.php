@@ -4,37 +4,50 @@
 
 <div class="container mt-5">
 
-    <h1>Dashboard</h1>
+    {{-- Dashboard Header --}}
+    <div class="mb-4">
 
-    <hr>
+        <h1>Dashboard</h1>
 
-    <h4>
-        Welcome,
-        {{ session('user_name') }}
-    </h4>
+        <hr>
 
-    <p>
-        Role:
-        <strong>{{ ucfirst(session('user_role')) }}</strong>
-    </p>
+        <h4>
+            Welcome, {{ session('user_name') }}
+        </h4>
+
+        <p>
+            Role:
+            <strong>
+                {{ ucfirst(session('user_role')) }}
+            </strong>
+        </p>
+
+    </div>
+
 
     {{-- Admin Dashboard --}}
-    @if(session('user_role') == 'admin')
+    @if(session('user_role') === 'admin')
 
-        <div class="alert alert-primary">
+        <div class="card border-primary shadow mb-4">
 
-            <h4>Admin Dashboard</h4>
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Admin Dashboard</h4>
+            </div>
 
-            <p>
-                You can manage:
-            </p>
+            <div class="card-body">
 
-            <ul>
-                <li>Organizations</li>
-                <li>Users</li>
-                <li>Projects</li>
-                <li>Tasks</li>
-            </ul>
+                <p>
+                    You can manage:
+                </p>
+
+                <ul>
+                    <li>Organizations</li>
+                    <li>Users</li>
+                    <li>Projects</li>
+                    <li>Tasks</li>
+                </ul>
+
+            </div>
 
         </div>
 
@@ -42,22 +55,28 @@
 
 
     {{-- Manager Dashboard --}}
-    @if(session('user_role') == 'manager')
+    @if(session('user_role') === 'manager')
 
-        <div class="alert alert-success">
+        <div class="card border-success shadow mb-4">
 
-            <h4>Manager Dashboard</h4>
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Manager Dashboard</h4>
+            </div>
 
-            <p>
-                You can:
-            </p>
+            <div class="card-body">
 
-            <ul>
-                <li>Create Organizations</li>
-                <li>Create Projects</li>
-                <li>Assign Tasks</li>
-                <li>Manage Employees</li>
-            </ul>
+                <p>
+                    You can:
+                </p>
+
+                <ul>
+                    <li>Create Organizations</li>
+                    <li>Create Projects</li>
+                    <li>Assign Tasks</li>
+                    <li>Manage Employees</li>
+                </ul>
+
+            </div>
 
         </div>
 
@@ -65,20 +84,26 @@
 
 
     {{-- Employee Dashboard --}}
-    @if(session('user_role') == 'employee')
+    @if(session('user_role') === 'employee')
 
-        <div class="alert alert-warning">
+        <div class="card border-warning shadow mb-4">
 
-            <h4>Employee Dashboard</h4>
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">Employee Dashboard</h4>
+            </div>
 
-            <p>
-                You can:
-            </p>
+            <div class="card-body">
 
-            <ul>
-                <li>View Assigned Tasks</li>
-                <li>Update Task Status</li>
-            </ul>
+                <p>
+                    You can:
+                </p>
+
+                <ul>
+                    <li>View Assigned Tasks</li>
+                    <li>Update Task Status</li>
+                </ul>
+
+            </div>
 
         </div>
 

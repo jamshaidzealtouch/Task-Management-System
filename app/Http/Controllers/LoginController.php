@@ -8,59 +8,64 @@ use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    
+    /**
+     * Show login page.
+     */
     public function index()
     {
         return view('auth.login');
     }
 
-   
+
+    /**
+     * Check login credentials.
+     */
     public function check(LoginRequest $request)
     {
         $user = User::where('email', $request->email)->first();
 
+        // Email not found
         if (!$user) {
 
-            return back()->with('error', 'Email not found.');
-
+            return back()->with(
+                'error',
+                'Email not found.'
+            );
         }
 
+
+        // Incorrect password
         if (!Hash::check($request->password, $user->password)) {
 
-            return back()->with('error', 'Incorrect password.');
-
+            return back()->with(
+                'error',
+                'Incorrect password.'
+            );
         }
 
-        session([
 
-            'user_id' => $user->id,
-        
+        // Store user information in session
+        session([
+            'user_id'   => $user->id,
             'user_name' => $user->name,
-        
-            'user_role' => $user->role,
-        
+            'user_role' => $user->role->value,
         ]);
 
-        return redirect('/home');
+
+        // Login successful
+        return redirect()->route('home');
     }
 
-   
+
+    /**
+     * Logout user.
+     */
     public function logout()
     {
+        // Remove all session data
         session()->flush();
 
-        if ($user->role->value == 'admin') {
-
-            return redirect()->route('home');
-        
-        }
-        
-        if ($user->role->value == 'manager') {
-        
-            return redirect()->route('projects.index');
-        
-        }
-        
-        return redirect()->route('home');
+        // Redirect to login page
+        return redirect()->route('login');
     }
 }

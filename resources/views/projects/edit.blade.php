@@ -4,52 +4,72 @@
 
 @php
     use App\Enums\ProjectStatus;
+
+    // Project status can come from database as string or Enum
+    $currentStatus = $project->status instanceof ProjectStatus
+        ? $project->status->value
+        : $project->status;
 @endphp
 
-<div class="card shadow">
+<div class="card-header">
+    <h3>Edit Project</h3>
+</div>
 
-    <div class="card-header">
+<div class="card-body">
 
-        <h3>Edit Project</h3>
+    {{-- Validation Errors --}}
+    @if ($errors->any())
 
-    </div>
+        <div class="alert alert-danger">
 
-    <div class="card-body">
+            <strong>Please fix the following errors:</strong>
 
-        {{-- Validation Errors --}}
-        @if ($errors->any())
+            <ul class="mb-0 mt-2">
 
-            <div class="alert alert-danger">
+                @foreach ($errors->all() as $error)
 
-                <strong>Please fix the following errors:</strong>
+                    <li>{{ $error }}</li>
 
-                <ul class="mb-0 mt-2">
+                @endforeach
 
-                    @foreach ($errors->all() as $error)
+            </ul>
 
-                        <li>{{ $error }}</li>
+        </div>
 
-                    @endforeach
+    @endif
 
-                </ul>
 
-            </div>
+    <form
+        action="{{ route('projects.update', $project->id) }}"
+        method="POST">
 
-        @endif
+        @csrf
+        @method('PUT')
 
-        <form action="{{ route('projects.update', $project->id) }}" method="POST">
 
-            @csrf
-            @method('PUT')
+        {{-- ========================================= --}}
+        {{-- Organization --}}
+        {{-- ========================================= --}}
 
-            {{-- Organization --}}
-            <div class="mb-3">
+        <div class="mb-3">
 
-                <label class="form-label">Organization</label>
+            <label
+                for="organization_id"
+                class="form-label">
+
+                Organization
+
+            </label>
+
+
+            {{-- ADMIN --}}
+            @if(session('user_role') === 'admin')
 
                 <select
                     name="organization_id"
-                    class="form-select">
+                    id="organization_id"
+                    class="form-select"
+                    required>
 
                     <option value="">
                         Select Organization
@@ -59,7 +79,12 @@
 
                         <option
                             value="{{ $organization->id }}"
-                            {{ old('organization_id', $project->organization_id) == $organization->id ? 'selected' : '' }}>
+                            {{ old(
+                                'organization_id',
+                                $project->organization_id
+                            ) == $organization->id
+                                ? 'selected'
+                                : '' }}>
 
                             {{ $organization->name }}
 
@@ -69,102 +94,256 @@
 
                 </select>
 
-            </div>
 
-            {{-- Project Title --}}
-            <div class="mb-3">
-
-                <label class="form-label">Project Title</label>
+            {{-- MANAGER --}}
+            @elseif(session('user_role') === 'manager')
 
                 <input
                     type="text"
-                    name="title"
                     class="form-control"
-                    value="{{ old('title', $project->title) }}">
-
-            </div>
-
-            {{-- Description --}}
-            <div class="mb-3">
-
-                <label class="form-label">Description</label>
-
-                <textarea
-                    name="description"
-                    class="form-control"
-                    rows="4">{{ old('description', $project->description) }}</textarea>
-
-            </div>
-
-            {{-- Start Date --}}
-            <div class="mb-3">
-
-                <label class="form-label">Start Date</label>
+                    value="{{ $organization->name }}"
+                    readonly>
 
                 <input
-                    type="date"
-                    name="start_date"
-                    class="form-control"
-                    value="{{ old('start_date', $project->start_date) }}">
+                    type="hidden"
+                    name="organization_id"
+                    value="{{ $organization->id }}">
 
-            </div>
+            @endif
 
-            {{-- End Date --}}
-            <div class="mb-3">
 
-                <label class="form-label">End Date</label>
+            @error('organization_id')
 
-                <input
-                    type="date"
-                    name="end_date"
-                    class="form-control"
-                    value="{{ old('end_date', $project->end_date) }}">
+                <div class="text-danger mt-1">
+                    {{ $message }}
+                </div>
 
-            </div>
+            @enderror
 
-            {{-- Status --}}
-            <div class="mb-3">
+        </div>
 
-                <label class="form-label">Status</label>
 
-                <select
-                    name="status"
-                    class="form-select">
+        {{-- ========================================= --}}
+        {{-- Project Title --}}
+        {{-- ========================================= --}}
 
-                    @foreach(ProjectStatus::cases() as $status)
+        <div class="mb-3">
 
-                        <option
-                            value="{{ $status->value }}"
-                            {{ old('status', $project->status->value ?? $project->status) == $status->value ? 'selected' : '' }}>
+            <label
+                for="title"
+                class="form-label">
 
-                            {{ ucwords(str_replace('_', ' ', $status->value)) }}
+                Project Title
 
-                        </option>
+            </label>
 
-                    @endforeach
+            <input
+                type="text"
+                name="title"
+                id="title"
+                class="form-control"
+                placeholder="Enter project title"
+                value="{{ old('title', $project->title) }}"
+                required>
 
-                </select>
+            @error('title')
 
-            </div>
+                <div class="text-danger mt-1">
+                    {{ $message }}
+                </div>
 
-            <button
-                type="submit"
-                class="btn btn-primary">
+            @enderror
 
-                Update Project
+        </div>
 
-            </button>
 
-            <a href="{{ route('projects.index') }}"
-               class="btn btn-secondary">
+        {{-- ========================================= --}}
+        {{-- Description --}}
+        {{-- ========================================= --}}
 
-                Back
+        <div class="mb-3">
 
-            </a>
+            <label
+                for="description"
+                class="form-label">
 
-        </form>
+                Description
 
-    </div>
+            </label>
+
+            <textarea
+                name="description"
+                id="description"
+                class="form-control"
+                rows="4"
+                placeholder="Enter project description">{{ old('description', $project->description) }}</textarea>
+
+            @error('description')
+
+                <div class="text-danger mt-1">
+                    {{ $message }}
+                </div>
+
+            @enderror
+
+        </div>
+
+
+        {{-- ========================================= --}}
+        {{-- Start Date --}}
+        {{-- ========================================= --}}
+
+        <div class="mb-3">
+
+            <label
+                for="start_date"
+                class="form-label">
+
+                Start Date
+
+            </label>
+
+            <input
+                type="date"
+                name="start_date"
+                id="start_date"
+                class="form-control"
+                value="{{ old(
+                    'start_date',
+                    $project->start_date
+                        ? date('Y-m-d', strtotime($project->start_date))
+                        : ''
+                ) }}"
+                required>
+
+            @error('start_date')
+
+                <div class="text-danger mt-1">
+                    {{ $message }}
+                </div>
+
+            @enderror
+
+        </div>
+
+
+        {{-- ========================================= --}}
+        {{-- End Date --}}
+        {{-- ========================================= --}}
+
+        <div class="mb-3">
+
+            <label
+                for="end_date"
+                class="form-label">
+
+                End Date
+
+            </label>
+
+            <input
+                type="date"
+                name="end_date"
+                id="end_date"
+                class="form-control"
+                value="{{ old(
+                    'end_date',
+                    $project->end_date
+                        ? date('Y-m-d', strtotime($project->end_date))
+                        : ''
+                ) }}"
+                required>
+
+            @error('end_date')
+
+                <div class="text-danger mt-1">
+                    {{ $message }}
+                </div>
+
+            @enderror
+
+        </div>
+
+
+        {{-- ========================================= --}}
+        {{-- Status --}}
+        {{-- ========================================= --}}
+
+        <div class="mb-3">
+
+            <label
+                for="status"
+                class="form-label">
+
+                Status
+
+            </label>
+
+            <select
+                name="status"
+                id="status"
+                class="form-select"
+                required>
+
+                <option value="">
+                    Select Status
+                </option>
+
+                @foreach(ProjectStatus::cases() as $status)
+
+                    <option
+                        value="{{ $status->value }}"
+                        {{ old('status', $currentStatus) == $status->value
+                            ? 'selected'
+                            : '' }}>
+
+                        {{ ucwords(
+                            str_replace(
+                                '_',
+                                ' ',
+                                $status->value
+                            )
+                        ) }}
+
+                    </option>
+
+                @endforeach
+
+            </select>
+
+            @error('status')
+
+                <div class="text-danger mt-1">
+                    {{ $message }}
+                </div>
+
+            @enderror
+
+        </div>
+
+
+        {{-- ========================================= --}}
+        {{-- Buttons --}}
+        {{-- ========================================= --}}
+
+        <button
+            type="submit"
+            class="btn btn-primary">
+
+            Update Project
+
+        </button>
+
+
+        <a
+            href="{{ route('projects.index') }}"
+            class="btn btn-secondary">
+
+            Back
+
+        </a>
+
+    </form>
 
 </div>
 

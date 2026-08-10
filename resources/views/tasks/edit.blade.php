@@ -2,149 +2,335 @@
 
 @section('content')
 
-<div class="container mt-4">
+<div class="card">
 
-    <div class="card shadow">
+    <div class="card-header">
+        <h3>Edit Task</h3>
 
-        <div class="card-header">
+        <h5 class="text-primary mb-0">
+            Project: {{ $project->title }}
+        </h5>
+    </div>
 
-            <h3>Edit Task</h3>
 
-            <h5 class="text-primary">
+    <div class="card-body">
 
-                Project : {{ $project->title }}
+        {{-- Validation Errors --}}
+        @if ($errors->any())
 
-            </h5>
+            <div class="alert alert-danger">
 
-        </div>
+                <strong>Please fix the following errors:</strong>
 
-        <div class="card-body">
+                <ul class="mb-0 mt-2">
 
-            {{-- Validation Errors --}}
-            @if ($errors->any())
+                    @foreach ($errors->all() as $error)
 
-                <div class="alert alert-danger">
+                        <li>{{ $error }}</li>
 
-                    <ul class="mb-0">
+                    @endforeach
 
-                        @foreach ($errors->all() as $error)
+                </ul>
 
-                            <li>{{ $error }}</li>
+            </div>
 
-                        @endforeach
+        @endif
 
-                    </ul>
 
-                </div>
+        {{-- Success Message --}}
+        @if (session('success'))
 
-            @endif
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
 
-            <form action="{{ route('projects.tasks.update', [$project->id, $task->id]) }}"
-                  method="POST">
+        @endif
 
-                @csrf
-                @method('PUT')
 
-                {{-- Task Title --}}
-                <div class="mb-3">
+        <form
+            action="{{ route('projects.tasks.update', [$project->id, $task->id]) }}"
+            method="POST"
+        >
 
-                    <label class="form-label">Task Title</label>
+            @csrf
 
-                    <input
-                        type="text"
-                        name="title"
-                        class="form-control"
-                        value="{{ old('title', $task->title) }}">
+            @method('PUT')
 
-                </div>
 
-                {{-- Description --}}
-                <div class="mb-3">
+            {{-- ========================================= --}}
+            {{-- Task Title --}}
+            {{-- ========================================= --}}
 
-                    <label class="form-label">Description</label>
+            <div class="mb-3">
 
-                    <textarea
-                        name="description"
-                        class="form-control"
-                        rows="4">{{ old('description', $task->description) }}</textarea>
+                <label
+                    for="title"
+                    class="form-label"
+                >
+                    Task Title
+                </label>
 
-                </div>
+                <input
+                    type="text"
+                    name="title"
+                    id="title"
+                    class="form-control"
+                    placeholder="Enter task title"
+                    value="{{ old('title', $task->title) }}"
+                    required
+                >
 
-                {{-- Due Date --}}
-                <div class="mb-3">
+                @error('title')
+                    <div class="text-danger mt-1">
+                        {{ $message }}
+                    </div>
+                @enderror
 
-                    <label class="form-label">Due Date</label>
+            </div>
 
-                    <input
-                        type="date"
-                        name="due_date"
-                        class="form-control"
-                        value="{{ old('due_date', $task->due_date) }}">
 
-                </div>
+            {{-- ========================================= --}}
+            {{-- Description --}}
+            {{-- ========================================= --}}
 
-                {{-- Priority --}}
-                <div class="mb-3">
+            <div class="mb-3">
 
-                    <label class="form-label">Priority</label>
+                <label
+                    for="description"
+                    class="form-label"
+                >
+                    Description
+                </label>
 
-                    <select name="priority" class="form-select">
+                <textarea
+                    name="description"
+                    id="description"
+                    class="form-control"
+                    rows="4"
+                    placeholder="Enter task description"
+                >{{ old('description', $task->description) }}</textarea>
 
-                        @foreach(App\Enums\TaskPriority::cases() as $priority)
+                @error('description')
+                    <div class="text-danger mt-1">
+                        {{ $message }}
+                    </div>
+                @enderror
 
-                            <option
-                                value="{{ $priority->value }}"
-                                {{ old('priority', $task->priority) == $priority->value ? 'selected' : '' }}>
+            </div>
 
-                                {{ ucfirst($priority->value) }}
 
-                            </option>
+            {{-- ========================================= --}}
+            {{-- Due Date --}}
+            {{-- ========================================= --}}
 
-                        @endforeach
+            <div class="mb-3">
 
-                    </select>
+                <label
+                    for="due_date"
+                    class="form-label"
+                >
+                    Due Date
+                </label>
 
-                </div>
+                @php
+                    $dueDate = $task->due_date;
 
-                {{-- Status --}}
-                <div class="mb-3">
+                    if ($dueDate instanceof \Carbon\CarbonInterface) {
+                        $dueDate = $dueDate->format('Y-m-d');
+                    } elseif (!empty($dueDate)) {
+                        $dueDate = \Carbon\Carbon::parse($dueDate)->format('Y-m-d');
+                    } else {
+                        $dueDate = '';
+                    }
+                @endphp
 
-                    <label class="form-label">Status</label>
+                <input
+                    type="date"
+                    name="due_date"
+                    id="due_date"
+                    class="form-control"
+                    value="{{ old('due_date', $dueDate) }}"
+                >
 
-                    <select name="status" class="form-select">
+                @error('due_date')
+                    <div class="text-danger mt-1">
+                        {{ $message }}
+                    </div>
+                @enderror
 
-                        @foreach(App\Enums\TaskStatus::cases() as $status)
+            </div>
 
-                            <option
-                                value="{{ $status->value }}"
-                                {{ old('status', $task->status) == $status->value ? 'selected' : '' }}>
 
-                                {{ ucwords(str_replace('_', ' ', $status->value)) }}
+            {{-- ========================================= --}}
+            {{-- Priority --}}
+            {{-- ========================================= --}}
 
-                            </option>
+            <div class="mb-3">
 
-                        @endforeach
+                <label
+                    for="priority"
+                    class="form-label"
+                >
+                    Priority
+                </label>
 
-                    </select>
+                @php
+                    $currentPriority = $task->priority instanceof \BackedEnum
+                        ? $task->priority->value
+                        : $task->priority;
+                @endphp
 
-                </div>
+                <select
+                    name="priority"
+                    id="priority"
+                    class="form-select"
+                    required
+                >
 
-                <button class="btn btn-primary">
+                    @foreach(App\Enums\TaskPriority::cases() as $priority)
 
-                    Update Task
+                        <option
+                            value="{{ $priority->value }}"
+                            {{ old('priority', $currentPriority) == $priority->value ? 'selected' : '' }}
+                        >
+                            {{ ucfirst(str_replace('_', ' ', $priority->value)) }}
+                        </option>
 
-                </button>
+                    @endforeach
 
-                <a href="{{ route('projects.tasks.index', $project->id) }}"
-                   class="btn btn-secondary">
+                </select>
 
-                    Back
+                @error('priority')
+                    <div class="text-danger mt-1">
+                        {{ $message }}
+                    </div>
+                @enderror
 
-                </a>
+            </div>
 
-            </form>
 
-        </div>
+            {{-- ========================================= --}}
+            {{-- Status --}}
+            {{-- ========================================= --}}
+
+            <div class="mb-3">
+
+                <label
+                    for="status"
+                    class="form-label"
+                >
+                    Status
+                </label>
+
+                @php
+                    $currentStatus = $task->status instanceof \BackedEnum
+                        ? $task->status->value
+                        : $task->status;
+                @endphp
+
+                <select
+                    name="status"
+                    id="status"
+                    class="form-select"
+                    required
+                >
+
+                    @foreach(App\Enums\TaskStatus::cases() as $status)
+
+                        <option
+                            value="{{ $status->value }}"
+                            {{ old('status', $currentStatus) == $status->value ? 'selected' : '' }}
+                        >
+                            {{ ucwords(str_replace('_', ' ', $status->value)) }}
+                        </option>
+
+                    @endforeach
+
+                </select>
+
+                @error('status')
+                    <div class="text-danger mt-1">
+                        {{ $message }}
+                    </div>
+                @enderror
+
+            </div>
+
+
+            {{-- ========================================= --}}
+            {{-- Assign Employee --}}
+            {{-- ========================================= --}}
+
+            <div class="mb-3">
+
+                <label
+                    for="assigned_to"
+                    class="form-label"
+                >
+                    Assign Employee
+                </label>
+
+                <select
+                    name="assigned_to"
+                    id="assigned_to"
+                    class="form-select"
+                >
+
+                    <option value="">
+                        Select Employee
+                    </option>
+
+                    @foreach($employees as $employee)
+
+                        <option
+                            value="{{ $employee->id }}"
+                            {{ old('assigned_to', $task->assigned_to) == $employee->id ? 'selected' : '' }}
+                        >
+                            {{ $employee->name }}
+                            ({{ $employee->email }})
+                        </option>
+
+                    @endforeach
+
+                </select>
+
+                @if($employees->isEmpty())
+
+                    <small class="text-danger">
+                        No employees are available in this organization.
+                    </small>
+
+                @endif
+
+                @error('assigned_to')
+                    <div class="text-danger mt-1">
+                        {{ $message }}
+                    </div>
+                @enderror
+
+            </div>
+
+
+            {{-- ========================================= --}}
+            {{-- Buttons --}}
+            {{-- ========================================= --}}
+
+            <button
+                type="submit"
+                class="btn btn-primary"
+            >
+                Update Task
+            </button>
+
+
+            <a
+                href="{{ route('projects.tasks.index', $project->id) }}"
+                class="btn btn-secondary"
+            >
+                Back
+            </a>
+
+        </form>
 
     </div>
 

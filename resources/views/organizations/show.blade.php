@@ -2,78 +2,65 @@
 
 @section('content')
 
-<div class="container mt-4">
+<div class="card shadow">
 
-    <div class="card shadow">
+    <div class="card-header">
+        <h3>Organization Details</h3>
+    </div>
 
-        <div class="card-header">
+    <div class="card-body">
 
-            <h3>Organization Details</h3>
+        <table class="table table-bordered">
 
-        </div>
+            <tr>
+                <th width="200">ID</th>
+                <td>{{ $organization->id }}</td>
+            </tr>
 
-        <div class="card-body">
+            <tr>
+                <th>Organization Name</th>
+                <td>{{ $organization->name }}</td>
+            </tr>
 
-            <table class="table table-bordered">
+            <tr>
+                <th>Description</th>
+                <td>{{ $organization->description }}</td>
+            </tr>
 
-                <tr>
+            <tr>
+                <th>Owner ID</th>
+                <td>{{ $organization->owner_id }}</td>
+            </tr>
 
-                    <th width="200">ID</th>
+            <tr>
+                <th>Created At</th>
+                <td>{{ $organization->created_at }}</td>
+            </tr>
 
-                    <td>{{ $organization->id }}</td>
+            <tr>
+                <th>Updated At</th>
+                <td>{{ $organization->updated_at }}</td>
+            </tr>
 
-                </tr>
+        </table>
 
-                <tr>
 
-                    <th>Organization Name</th>
+        {{-- Actions --}}
 
-                    <td>{{ $organization->name }}</td>
+        <a href="{{ route('organizations.users.index', $organization) }}"
+           class="btn btn-primary">
 
-                </tr>
+            Manage Users
 
-                <tr>
+        </a>
 
-                    <th>Description</th>
 
-                    <td>{{ $organization->description }}</td>
+        <a href="{{ route('organizations.index') }}"
+           class="btn btn-secondary">
 
-                </tr>
+            Back
 
-                <tr>
-
-                    <th>Owner ID</th>
-
-                    <td>{{ $organization->owner_id }}</td>
-
-                </tr>
-
-                <tr>
-
-                    <th>Created At</th>
-
-                    <td>{{ $organization->created_at }}</td>
-
-                </tr>
-
-                <tr>
-
-                    <th>Updated At</th>
-
-                    <td>{{ $organization->updated_at }}</td>
-
-                </tr>
-
-            </table>
-
-            <a href="{{ route('organizations.index') }}"
-               class="btn btn-secondary">
-
-                Back
-
-            </a>
-
-        </div>
+        </a>
 
     </div>
 

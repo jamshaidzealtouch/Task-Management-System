@@ -95,6 +95,10 @@
                                     Edit
 
                                 </a>
+                                <a href="{{ route('organizations.projects.index', $organization->id) }}"
+           class="btn btn-primary btn-sm">
+            Projects
+        </a>
 
                                 <form action="{{ route('organizations.destroy', $organization->id) }}"
                                       method="POST">

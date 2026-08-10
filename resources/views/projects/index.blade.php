@@ -4,33 +4,74 @@
 
 @php
     use App\Enums\ProjectStatus;
+
+    $userRole = session('user_role');
 @endphp
 
+
+{{-- Page Header --}}
 <div class="d-flex justify-content-between align-items-center mb-4">
 
-    <h2 class="mb-0">Project List</h2>
+    <div>
 
-    <a href="{{ route('projects.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Add Project
-    </a>
+        <h2 class="mb-1">
+            Project List
+        </h2>
+
+        @if(isset($organization))
+
+            <h5 class="text-primary mb-0">
+                Organization: {{ $organization->name }}
+            </h5>
+
+        @endif
+
+    </div>
+
+
+    {{-- Only Admin and Manager can create projects --}}
+    @if(
+        $userRole === 'admin' ||
+        $userRole === 'manager'
+    )
+
+        <a
+            href="{{ route('projects.create') }}"
+            class="btn btn-primary">
+
+            Add Project
+
+        </a>
+
+    @endif
 
 </div>
 
+
+
 {{-- Success Message --}}
 @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show"
-         id="success-alert"
-         role="alert">
+
+    <div
+        class="alert alert-success alert-dismissible fade show"
+        id="success-alert"
+        role="alert">
 
         {{ session('success') }}
 
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="alert"></button>
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert">
+        </button>
 
     </div>
+
 @endif
 
+
+
+{{-- Project Table --}}
 <div class="table-responsive">
 
     <table class="table table-bordered table-hover align-middle">
@@ -38,19 +79,31 @@
         <thead class="table-dark text-center">
 
             <tr>
+
                 <th>ID</th>
+
                 <th>Organization</th>
+
                 <th>Project Title</th>
+
                 <th>Description</th>
+
                 <th>Start Date</th>
+
                 <th>End Date</th>
+
                 <th>Status</th>
+
                 <th>Created At</th>
+
                 <th>Updated At</th>
+
                 <th width="260">Action</th>
+
             </tr>
 
         </thead>
+
 
         <tbody>
 
@@ -58,75 +111,177 @@
 
                 <tr>
 
-                    <td>{{ $project->id }}</td>
-
+                    {{-- ID --}}
                     <td>
-                        {{ $project->organization?->name }}
+                        {{ $project->id }}
                     </td>
 
-                    <td>{{ $project->title }}</td>
 
-                    <td>{{ $project->description }}</td>
+                    {{-- Organization --}}
+                    <td>
 
-                    <td>{{ $project->start_date }}</td>
+                        @if($project->organization)
 
-                    <td>{{ $project->end_date }}</td>
+                            {{ $project->organization->name }}
 
+                        @else
+
+                            <span class="text-muted">
+                                No Organization
+                            </span>
+
+                        @endif
+
+                    </td>
+
+
+                    {{-- Project Title --}}
+                    <td>
+                        {{ $project->title }}
+                    </td>
+
+
+                    {{-- Description --}}
+                    <td>
+                        {{ $project->description }}
+                    </td>
+
+
+                    {{-- Start Date --}}
+                    <td>
+                        {{ $project->start_date }}
+                    </td>
+
+
+                    {{-- End Date --}}
+                    <td>
+                        {{ $project->end_date }}
+                    </td>
+
+
+                    {{-- Status --}}
                     <td class="text-center">
 
                         @php
-                            $badge = match ($project->status) {
 
-                                ProjectStatus::Pending => 'warning text-dark',
+                            $status = $project->status instanceof ProjectStatus
+                                ? $project->status->value
+                                : $project->status;
 
-                                ProjectStatus::InProgress => 'primary',
+                            $badge = match ($status) {
 
-                                ProjectStatus::Completed => 'success',
+                                'pending' =>
+                                    'warning text-dark',
 
-                                ProjectStatus::Cancelled => 'danger',
+                                'in_progress' =>
+                                    'primary',
+
+                                'completed' =>
+                                    'success',
+
+                                'cancelled' =>
+                                    'danger',
+
+                                default =>
+                                    'secondary',
 
                             };
+
                         @endphp
 
+
                         <span class="badge bg-{{ $badge }}">
-                            {{ ucwords(str_replace('_', ' ', $project->status->value)) }}
+
+                            {{ ucwords(
+                                str_replace(
+                                    '_',
+                                    ' ',
+                                    $status
+                                )
+                            ) }}
+
                         </span>
 
                     </td>
 
-                    <td>{{ $project->created_at }}</td>
 
-                    <td>{{ $project->updated_at }}</td>
+                    {{-- Created At --}}
+                    <td>
+                        {{ $project->created_at }}
+                    </td>
 
+
+                    {{-- Updated At --}}
+                    <td>
+                        {{ $project->updated_at }}
+                    </td>
+
+
+                    {{-- Actions --}}
                     <td>
 
                         <div class="d-flex justify-content-center gap-2">
 
-                            <a href="{{ route('projects.tasks.index', $project->id) }}"
-                               class="btn btn-info btn-sm">
-                                View
+
+                            {{-- View Tasks --}}
+                            <a
+                                href="{{ route(
+                                    'projects.tasks.index',
+                                    $project->id
+                                ) }}"
+                                class="btn btn-info btn-sm">
+
+                                Tasks
+
                             </a>
 
-                            <a href="{{ route('projects.edit', $project->id) }}"
-                               class="btn btn-warning btn-sm">
-                                Edit
-                            </a>
 
-                            <form action="{{ route('projects.destroy', $project->id) }}"
-                                  method="POST">
+                            {{-- Admin / Manager Actions --}}
+                            @if(
+                                $userRole === 'admin' ||
+                                $userRole === 'manager'
+                            )
 
-                                @csrf
-                                @method('DELETE')
+                                {{-- Edit --}}
+                                <a
+                                    href="{{ route(
+                                        'projects.edit',
+                                        $project->id
+                                    ) }}"
+                                    class="btn btn-warning btn-sm">
 
-                                <button type="submit"
+                                    Edit
+
+                                </a>
+
+
+                                {{-- Delete --}}
+                                <form
+                                    action="{{ route(
+                                        'projects.destroy',
+                                        $project->id
+                                    ) }}"
+                                    method="POST">
+
+                                    @csrf
+
+                                    @method('DELETE')
+
+                                    <button
+                                        type="submit"
                                         class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Are you sure you want to delete this project?')">
+                                        onclick="return confirm(
+                                            'Are you sure you want to delete this project?'
+                                        )">
 
-                                    Delete
+                                        Delete
 
-                                </button>
+                                    </button>
 
-                            </form>
+                                </form>
+
+                            @endif
+
 
                         </div>
 
@@ -134,14 +289,24 @@
 
                 </tr>
 
+
             @empty
 
                 <tr>
 
-                    <td colspan="10"
+                    <td
+                        colspan="10"
                         class="text-center text-danger py-4">
 
-                        No Projects Found
+                        @if($userRole === 'employee')
+
+                            No projects have tasks assigned to you.
+
+                        @else
+
+                            No Projects Found.
+
+                        @endif
 
                     </td>
 
@@ -155,27 +320,26 @@
 
 </div>
 
+
+
 {{-- Auto Hide Success Alert --}}
 <script>
 
-setTimeout(function () {
+    setTimeout(function () {
 
-    let alert = document.getElementById('success-alert');
+        const alert = document.getElementById('success-alert');
 
-    if (alert) {
+        if (alert) {
 
-        alert.classList.remove('show');
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
 
-        setTimeout(function () {
+            bsAlert.close();
 
-            alert.remove();
+        }
 
-        }, 500);
-
-    }
-
-}, 5000);
+    }, 3000);
 
 </script>
+
 
 @endsection

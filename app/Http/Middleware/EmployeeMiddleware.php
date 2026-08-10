@@ -10,7 +10,21 @@ class EmployeeMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!in_array(session('user_role'), ['admin', 'manager', 'employee'])) {
+        if (!session()->has('user_role')) {
+
+            abort(403, 'Unauthorized');
+
+        }
+
+        if (!in_array(session('user_role'), [
+
+            'admin',
+
+            'manager',
+
+            'employee',
+
+        ])) {
 
             abort(403, 'Unauthorized');
 

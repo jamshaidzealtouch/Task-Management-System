@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
+
 @section('content')
+
 
 @php
     use App\Enums\ProjectStatus;
@@ -48,7 +50,6 @@
 </div>
 
 
-
 {{-- Success Message --}}
 @if(session('success'))
 
@@ -68,7 +69,6 @@
     </div>
 
 @endif
-
 
 
 {{-- Project Table --}}
@@ -98,7 +98,7 @@
 
                 <th>Updated At</th>
 
-                <th width="260">Action</th>
+                <th width="350">Action</th>
 
             </tr>
 
@@ -168,6 +168,7 @@
                                 ? $project->status->value
                                 : $project->status;
 
+
                             $badge = match ($status) {
 
                                 'pending' =>
@@ -220,7 +221,7 @@
                     {{-- Actions --}}
                     <td>
 
-                        <div class="d-flex justify-content-center gap-2">
+                        <div class="d-flex justify-content-center gap-2 flex-wrap">
 
 
                             {{-- View Tasks --}}
@@ -236,11 +237,32 @@
                             </a>
 
 
+                            {{-- Manage Users --}}
+                            @if(
+                                $userRole === 'admin' ||
+                                $userRole === 'manager'
+                            )
+
+                                <a
+                                    href="{{ route(
+                                        'projects.users.index',
+                                        $project->id
+                                    ) }}"
+                                    class="btn btn-primary btn-sm">
+
+                                    Manage Users
+
+                                </a>
+
+                            @endif
+
+
                             {{-- Admin / Manager Actions --}}
                             @if(
                                 $userRole === 'admin' ||
                                 $userRole === 'manager'
                             )
+
 
                                 {{-- Edit --}}
                                 <a
@@ -319,7 +341,6 @@
     </table>
 
 </div>
-
 
 
 {{-- Auto Hide Success Alert --}}

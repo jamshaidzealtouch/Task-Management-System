@@ -9,7 +9,6 @@ use App\Models\Organization;
 
 class ProjectController extends Controller
 {
-
     private function getUserOrganizations()
     {
         $userId = session('user_id');
@@ -69,8 +68,10 @@ class ProjectController extends Controller
             )
             ->whereHas('tasks', function ($query) use ($userId) {
 
+                // Employee only sees projects
+                // having tasks assigned to them
                 $query->where(
-                    'assigned_to',
+                    'assignee_id',
                     $userId
                 );
 
@@ -88,7 +89,6 @@ class ProjectController extends Controller
                 $organizationIds
             )->get();
         }
-
         elseif ($userRole === 'manager') {
 
             $organization = $this->getUserOrganization();
@@ -98,7 +98,6 @@ class ProjectController extends Controller
                 $organization->id
             )->get();
         }
-
         else {
             abort(403);
         }
@@ -112,7 +111,6 @@ class ProjectController extends Controller
     public function organizationProjects(
         Organization $organization
     ) {
-
         if (session('user_role') !== 'admin') {
             abort(403);
         }
@@ -235,7 +233,6 @@ class ProjectController extends Controller
         StoreProjectRequest $request,
         Organization $organization
     ) {
-
         if (session('user_role') !== 'admin') {
             abort(403);
         }
@@ -277,7 +274,7 @@ class ProjectController extends Controller
 
             $hasAssignedTask = $project->tasks()
                 ->where(
-                    'assigned_to',
+                    'assignee_id',
                     session('user_id')
                 )
                 ->exists();

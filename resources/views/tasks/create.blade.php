@@ -35,14 +35,12 @@
 
         @endif
 
-
         <form
             action="{{ route('projects.tasks.store', $project->id) }}"
             method="POST"
         >
 
             @csrf
-
 
             {{-- Task Title --}}
             <div class="mb-3">
@@ -61,7 +59,6 @@
 
             </div>
 
-
             {{-- Description --}}
             <div class="mb-3">
 
@@ -78,7 +75,6 @@
 
             </div>
 
-
             {{-- Due Date --}}
             <div class="mb-3">
 
@@ -94,7 +90,6 @@
                 >
 
             </div>
-
 
             {{-- Priority --}}
             <div class="mb-3">
@@ -129,7 +124,6 @@
 
             </div>
 
-
             {{-- Status --}}
             <div class="mb-3">
 
@@ -163,7 +157,6 @@
 
             </div>
 
-
             {{-- Assign Employee --}}
             <div class="mb-3">
 
@@ -172,7 +165,7 @@
                 </label>
 
                 <select
-                    name="assigned_to"
+                    name="assignee_id"
                     class="form-select"
                 >
 
@@ -184,7 +177,7 @@
 
                         <option
                             value="{{ $employee->id }}"
-                            {{ old('assigned_to') == $employee->id ? 'selected' : '' }}
+                            {{ old('assignee_id') == $employee->id ? 'selected' : '' }}
                         >
 
                             {{ $employee->name }}
@@ -207,7 +200,6 @@
 
             </div>
 
-
             {{-- Buttons --}}
             <button
                 type="submit"
@@ -217,7 +209,6 @@
                 Save Task
 
             </button>
-
 
             <a
                 href="{{ route('projects.tasks.index', $project->id) }}"

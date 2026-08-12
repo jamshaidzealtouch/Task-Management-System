@@ -5,13 +5,14 @@
 <div class="card">
 
     <div class="card-header">
+
         <h3>Edit Task</h3>
 
         <h5 class="text-primary mb-0">
             Project: {{ $project->title }}
         </h5>
-    </div>
 
+    </div>
 
     <div class="card-body">
 
@@ -36,16 +37,16 @@
 
         @endif
 
-
         {{-- Success Message --}}
         @if (session('success'))
 
             <div class="alert alert-success">
+
                 {{ session('success') }}
+
             </div>
 
         @endif
-
 
         <form
             action="{{ route('projects.tasks.update', [$project->id, $task->id]) }}"
@@ -55,7 +56,6 @@
             @csrf
 
             @method('PUT')
-
 
             {{-- ========================================= --}}
             {{-- Task Title --}}
@@ -81,13 +81,14 @@
                 >
 
                 @error('title')
+
                     <div class="text-danger mt-1">
                         {{ $message }}
                     </div>
+
                 @enderror
 
             </div>
-
 
             {{-- ========================================= --}}
             {{-- Description --}}
@@ -111,13 +112,14 @@
                 >{{ old('description', $task->description) }}</textarea>
 
                 @error('description')
+
                     <div class="text-danger mt-1">
                         {{ $message }}
                     </div>
+
                 @enderror
 
             </div>
-
 
             {{-- ========================================= --}}
             {{-- Due Date --}}
@@ -133,15 +135,23 @@
                 </label>
 
                 @php
+
                     $dueDate = $task->due_date;
 
                     if ($dueDate instanceof \Carbon\CarbonInterface) {
+
                         $dueDate = $dueDate->format('Y-m-d');
+
                     } elseif (!empty($dueDate)) {
+
                         $dueDate = \Carbon\Carbon::parse($dueDate)->format('Y-m-d');
+
                     } else {
+
                         $dueDate = '';
+
                     }
+
                 @endphp
 
                 <input
@@ -153,13 +163,14 @@
                 >
 
                 @error('due_date')
+
                     <div class="text-danger mt-1">
                         {{ $message }}
                     </div>
+
                 @enderror
 
             </div>
-
 
             {{-- ========================================= --}}
             {{-- Priority --}}
@@ -175,9 +186,11 @@
                 </label>
 
                 @php
+
                     $currentPriority = $task->priority instanceof \BackedEnum
                         ? $task->priority->value
                         : $task->priority;
+
                 @endphp
 
                 <select
@@ -193,7 +206,9 @@
                             value="{{ $priority->value }}"
                             {{ old('priority', $currentPriority) == $priority->value ? 'selected' : '' }}
                         >
+
                             {{ ucfirst(str_replace('_', ' ', $priority->value)) }}
+
                         </option>
 
                     @endforeach
@@ -201,13 +216,14 @@
                 </select>
 
                 @error('priority')
+
                     <div class="text-danger mt-1">
                         {{ $message }}
                     </div>
+
                 @enderror
 
             </div>
-
 
             {{-- ========================================= --}}
             {{-- Status --}}
@@ -223,9 +239,11 @@
                 </label>
 
                 @php
+
                     $currentStatus = $task->status instanceof \BackedEnum
                         ? $task->status->value
                         : $task->status;
+
                 @endphp
 
                 <select
@@ -241,7 +259,9 @@
                             value="{{ $status->value }}"
                             {{ old('status', $currentStatus) == $status->value ? 'selected' : '' }}
                         >
+
                             {{ ucwords(str_replace('_', ' ', $status->value)) }}
+
                         </option>
 
                     @endforeach
@@ -249,13 +269,14 @@
                 </select>
 
                 @error('status')
+
                     <div class="text-danger mt-1">
                         {{ $message }}
                     </div>
+
                 @enderror
 
             </div>
-
 
             {{-- ========================================= --}}
             {{-- Assign Employee --}}
@@ -264,15 +285,15 @@
             <div class="mb-3">
 
                 <label
-                    for="assigned_to"
+                    for="assignee_id"
                     class="form-label"
                 >
                     Assign Employee
                 </label>
 
                 <select
-                    name="assigned_to"
-                    id="assigned_to"
+                    name="assignee_id"
+                    id="assignee_id"
                     class="form-select"
                 >
 
@@ -284,10 +305,13 @@
 
                         <option
                             value="{{ $employee->id }}"
-                            {{ old('assigned_to', $task->assigned_to) == $employee->id ? 'selected' : '' }}
+                            {{ old('assignee_id', $task->assignee_id) == $employee->id ? 'selected' : '' }}
                         >
+
                             {{ $employee->name }}
+
                             ({{ $employee->email }})
+
                         </option>
 
                     @endforeach
@@ -302,14 +326,15 @@
 
                 @endif
 
-                @error('assigned_to')
+                @error('assignee_id')
+
                     <div class="text-danger mt-1">
                         {{ $message }}
                     </div>
+
                 @enderror
 
             </div>
-
 
             {{-- ========================================= --}}
             {{-- Buttons --}}
@@ -319,15 +344,18 @@
                 type="submit"
                 class="btn btn-primary"
             >
-                Update Task
-            </button>
 
+                Update Task
+
+            </button>
 
             <a
                 href="{{ route('projects.tasks.index', $project->id) }}"
                 class="btn btn-secondary"
             >
+
                 Back
+
             </a>
 
         </form>

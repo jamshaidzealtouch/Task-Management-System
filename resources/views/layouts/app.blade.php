@@ -92,7 +92,7 @@
                 {{-- Employee My Tasks --}}
                 @if(session('user_role') == 'employee')
 
-                    <a href="#"
+                    <a href="{{ route('my.tasks') }}"
                        class="btn btn-outline-light me-2">
 
                         My Tasks

@@ -47,12 +47,7 @@
 
         {{-- Actions --}}
 
-        <a href="{{ route('organizations.users.index', $organization) }}"
-           class="btn btn-primary">
-
-            Manage Users
-
-        </a>
+       
 
 
         <a href="{{ route('organizations.index') }}"

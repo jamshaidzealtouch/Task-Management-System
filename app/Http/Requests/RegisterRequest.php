@@ -15,13 +15,29 @@ class RegisterRequest extends FormRequest
     {
         return [
 
-            'name' => 'required|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
 
-            'email' => 'required|email|unique:users,email',
+            'email' => [
+                'required',
+                'email',
+                'unique:users,email',
+            ],
 
-            'password' => 'required|min:6|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:4',
+                'confirmed',
+            ],
 
-            'role' => 'required|in:admin,manager,employee',
+            'role' => [
+                'required',
+                'in:admin,manager,employee',
+            ],
 
         ];
     }

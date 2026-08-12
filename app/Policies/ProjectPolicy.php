@@ -58,4 +58,37 @@ class ProjectPolicy
     {
         return $user->role->value === 'admin';
     }
+
+    /**
+     * Manage users of project.
+     */
+    public function manageUsers(User $user, Project $project): bool
+    {
+        return in_array($user->role->value, [
+            'admin',
+            'manager',
+        ]);
+    }
+
+    /**
+     * Add user to project.
+     */
+    public function addUser(User $user, Project $project): bool
+    {
+        return in_array($user->role->value, [
+            'admin',
+            'manager',
+        ]);
+    }
+
+    /**
+     * Remove user from project.
+     */
+    public function removeUser(User $user, Project $project): bool
+    {
+        return in_array($user->role->value, [
+            'admin',
+            'manager',
+        ]);
+    }
 }

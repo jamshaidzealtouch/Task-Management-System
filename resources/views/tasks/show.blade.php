@@ -11,70 +11,96 @@
             <h3>Task Details</h3>
 
             <h5 class="text-primary">
-
-                Project :
+                Project:
                 {{ $project->title }}
-
             </h5>
 
         </div>
+
 
         <div class="card-body">
 
             <table class="table table-bordered">
 
+                {{-- Title --}}
                 <tr>
 
-                    <th width="200">Title</th>
+                    <th width="200">
+                        Title
+                    </th>
 
-                    <td>{{ $task->title }}</td>
+                    <td>
+                        {{ $task->title }}
+                    </td>
 
                 </tr>
 
+
+                {{-- Description --}}
                 <tr>
 
-                    <th>Description</th>
+                    <th>
+                        Description
+                    </th>
 
-                    <td>{{ $task->description }}</td>
+                    <td>
+                        {{ $task->description }}
+                    </td>
 
                 </tr>
 
+
+                {{-- Due Date --}}
                 <tr>
 
-                    <th>Due Date</th>
+                    <th>
+                        Due Date
+                    </th>
 
-                    <td>{{ $task->due_date }}</td>
+                    <td>
+                        {{ $task->due_date }}
+                    </td>
 
                 </tr>
 
+
+                {{-- Priority --}}
                 <tr>
 
-                    <th>Priority</th>
+                    <th>
+                        Priority
+                    </th>
 
                     <td>
 
-                        @if($task->priority == 'Low')
+                        @php
+                            $priority = $task->priority instanceof \BackedEnum
+                                ? $task->priority->value
+                                : $task->priority;
+                        @endphp
+
+                        @if($priority === 'low')
 
                             <span class="badge bg-success">
-
                                 Low
-
                             </span>
 
-                        @elseif($task->priority == 'Medium')
+                        @elseif($priority === 'medium')
 
                             <span class="badge bg-warning text-dark">
-
                                 Medium
+                            </span>
 
+                        @elseif($priority === 'high')
+
+                            <span class="badge bg-danger">
+                                High
                             </span>
 
                         @else
 
-                            <span class="badge bg-danger">
-
-                                High
-
+                            <span class="badge bg-secondary">
+                                {{ ucfirst($priority) }}
                             </span>
 
                         @endif
@@ -83,34 +109,102 @@
 
                 </tr>
 
+
+                {{-- Status --}}
                 <tr>
 
-                    <th>Status</th>
+                    <th>
+                        Status
+                    </th>
 
                     <td>
 
-                        @if($task->status == 'To_Do')
+                        @php
+                            $status = $task->status instanceof \BackedEnum
+                                ? $task->status->value
+                                : $task->status;
+                        @endphp
+
+                        @if($status === 'to_do')
 
                             <span class="badge bg-secondary">
-
                                 To Do
-
                             </span>
 
-                        @elseif($task->status == 'In_Progress')
+                        @elseif($status === 'in_progress')
 
                             <span class="badge bg-primary">
-
                                 In Progress
+                            </span>
 
+                        @elseif($status === 'completed')
+
+                            <span class="badge bg-success">
+                                Completed
                             </span>
 
                         @else
 
-                            <span class="badge bg-success">
+                            <span class="badge bg-dark">
+                                {{ ucwords(str_replace('_', ' ', $status)) }}
+                            </span>
 
-                                Completed
+                        @endif
 
+                    </td>
+
+                </tr>
+
+
+                {{-- Assigned Employee --}}
+                <tr>
+
+                    <th>
+                        Assigned To
+                    </th>
+
+                    <td>
+
+                        @if($task->assignee)
+
+                            <span class="badge bg-info text-dark">
+                                {{ $task->assignee->name }}
+                            </span>
+
+                            <small class="text-muted">
+                                ({{ $task->assignee->email }})
+                            </small>
+
+                        @else
+
+                            <span class="text-muted">
+                                Not Assigned
+                            </span>
+
+                        @endif
+
+                    </td>
+
+                </tr>
+
+
+                {{-- Created By --}}
+                <tr>
+
+                    <th>
+                        Created By
+                    </th>
+
+                    <td>
+
+                        @if($task->creator)
+
+                            {{ $task->creator->name }}
+
+                        @else
+
+                            <span class="text-muted">
+                                Unknown
                             </span>
 
                         @endif
@@ -121,11 +215,12 @@
 
             </table>
 
-            <a href="{{ route('projects.tasks.index',$project->id) }}"
-               class="btn btn-secondary">
 
+            <a
+                href="{{ route('projects.tasks.index', $project->id) }}"
+                class="btn btn-secondary"
+            >
                 Back
-
             </a>
 
         </div>

@@ -10,12 +10,11 @@
 
         <a href="{{ route('organizations.create') }}"
            class="btn btn-primary">
-
             Add Organization
-
         </a>
 
     </div>
+
 
     {{-- Success Message --}}
     @if(session('success'))
@@ -34,6 +33,7 @@
 
     @endif
 
+
     <div class="table-responsive">
 
         <table class="table table-bordered table-hover align-middle">
@@ -43,22 +43,17 @@
                 <tr>
 
                     <th>ID</th>
-
                     <th>Organization Name</th>
-
                     <th>Description</th>
-
                     <th>Owner ID</th>
-
                     <th>Created At</th>
-
                     <th>Updated At</th>
-
-                    <th width="250">Action</th>
+                    <th width="350">Action</th>
 
                 </tr>
 
             </thead>
+
 
             <tbody>
 
@@ -66,41 +61,103 @@
 
                     <tr>
 
-                        <td>{{ $organization->id }}</td>
+                        {{-- ID --}}
+                        <td>
+                            {{ $organization->id }}
+                        </td>
 
-                        <td>{{ $organization->name }}</td>
 
-                        <td>{{ $organization->description }}</td>
+                        {{-- Organization Name --}}
+                        <td>
+                            <strong>
+                                {{ $organization->name }}
+                            </strong>
+                        </td>
 
-                        <td>{{ $organization->owner_id }}</td>
 
-                        <td>{{ $organization->created_at }}</td>
+                        {{-- Description --}}
+                        <td>
+                            {{ $organization->description ?? 'N/A' }}
+                        </td>
 
-                        <td>{{ $organization->updated_at }}</td>
 
+                        {{-- Owner --}}
+                        <td class="text-center">
+                            {{ $organization->owner_id }}
+                        </td>
+
+
+                        {{-- Created At --}}
+                        <td>
+                            {{ $organization->created_at?->format('Y-m-d H:i') }}
+                        </td>
+
+
+                        {{-- Updated At --}}
+                        <td>
+                            {{ $organization->updated_at?->format('Y-m-d H:i') }}
+                        </td>
+
+
+                        {{-- Actions --}}
                         <td>
 
-                            <div class="d-flex justify-content-center gap-2">
+                            <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-                                <a href="{{ route('organizations.show', $organization->id) }}"
+
+                                {{-- View --}}
+                                <a href="{{ route(
+                                    'organizations.show',
+                                    $organization->id
+                                ) }}"
                                    class="btn btn-info btn-sm">
 
                                     View
 
                                 </a>
 
-                                <a href="{{ route('organizations.edit', $organization->id) }}"
+
+                                {{-- Edit --}}
+                                <a href="{{ route(
+                                    'organizations.edit',
+                                    $organization->id
+                                ) }}"
                                    class="btn btn-warning btn-sm">
 
                                     Edit
 
-                                </a>
-                                <a href="{{ route('organizations.projects.index', $organization->id) }}"
-           class="btn btn-primary btn-sm">
-            Projects
-        </a>
+                                <!-- </a>
 
-                                <form action="{{ route('organizations.destroy', $organization->id) }}"
+
+                                {{-- Users --}}
+                                <a href="{{ route(
+                                    'organizations.users.index',
+                                    $organization->id
+                                ) }}"
+                                   class="btn btn-success btn-sm">
+
+                                    Users
+
+                                </a> -->
+
+
+                                {{-- Projects --}}
+                                <a href="{{ route(
+                                    'organizations.projects.index',
+                                    $organization->id
+                                ) }}"
+                                   class="btn btn-primary btn-sm">
+
+                                    Projects
+
+                                </a>
+
+
+                                {{-- Delete --}}
+                                <form action="{{ route(
+                                    'organizations.destroy',
+                                    $organization->id
+                                ) }}"
                                       method="POST">
 
                                     @csrf
@@ -109,7 +166,9 @@
 
                                     <button type="submit"
                                             class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Are you sure you want to delete this organization?')">
+                                            onclick="return confirm(
+                                                'Are you sure you want to delete this organization?'
+                                            )">
 
                                         Delete
 
@@ -146,6 +205,7 @@
 
 </div>
 
+
 <script>
 
 setTimeout(function () {
@@ -157,9 +217,7 @@ setTimeout(function () {
         alert.classList.remove('show');
 
         setTimeout(function () {
-
             alert.remove();
-
         }, 500);
 
     }

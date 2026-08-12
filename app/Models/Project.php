@@ -3,63 +3,43 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\Task;
-use App\Models\Organization;
+use App\Enums\ProjectStatus;
 
 class Project extends Model
 {
     protected $fillable = [
-        'user_id',
-        'organization_id',
         'title',
         'description',
         'start_date',
         'end_date',
         'status',
+        'organization_id',
+       
     ];
+
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'status' => ProjectStatus::class,
     ];
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | User Relationship
-    |--------------------------------------------------------------------------
-    */
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Organization Relationship
-    |--------------------------------------------------------------------------
-    */
 
     public function organization()
     {
         return $this->belongsTo(
-            Organization::class,
-            'organization_id'
+            Organization::class
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Tasks Relationship
-    |--------------------------------------------------------------------------
-    */
-
+    public function users()
+    {
+        return $this->belongsToMany(User::class)
+                    ->withPivot('role');
+    }
     public function tasks()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(
+            Task::class
+        );
     }
 }

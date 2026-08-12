@@ -8,9 +8,6 @@ use App\Http\Requests\UpdateOrganizationRequest;
 
 class OrganizationController extends Controller
 {
-    /**
-     * Display organizations owned by the logged-in user.
-     */
     public function index()
     {
         $organizations = Organization::where(
@@ -23,20 +20,11 @@ class OrganizationController extends Controller
             compact('organizations')
         );
     }
-
-
-    /**
-     * Show create organization form.
-     */
     public function create()
     {
         return view('organizations.create');
     }
 
-
-    /**
-     * Store organization.
-     */
     public function store(StoreOrganizationRequest $request)
     {
         $data = $request->validated();
@@ -53,11 +41,6 @@ class OrganizationController extends Controller
                 'Organization created successfully.'
             );
     }
-
-
-    /**
-     * Show organization.
-     */
     public function show(Organization $organization)
     {
         if ($organization->owner_id != session('user_id')) {
@@ -70,10 +53,6 @@ class OrganizationController extends Controller
         );
     }
 
-
-    /**
-     * Show edit form.
-     */
     public function edit(Organization $organization)
     {
         if ($organization->owner_id != session('user_id')) {
@@ -86,10 +65,6 @@ class OrganizationController extends Controller
         );
     }
 
-
-    /**
-     * Update organization.
-     */
     public function update(
         UpdateOrganizationRequest $request,
         Organization $organization
@@ -109,11 +84,6 @@ class OrganizationController extends Controller
                 'Organization updated successfully.'
             );
     }
-
-
-    /**
-     * Delete organization.
-     */
     public function destroy(Organization $organization)
     {
         if ($organization->owner_id != session('user_id')) {

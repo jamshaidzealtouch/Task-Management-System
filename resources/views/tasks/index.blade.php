@@ -9,19 +9,15 @@
     $userRole = session('user_role');
 @endphp
 
-
 <div class="d-flex justify-content-between align-items-center mb-4">
 
     <div>
-
         <h2>Task List</h2>
 
         <h5 class="text-primary">
             Project : {{ $project->title }}
         </h5>
-
     </div>
-
 
     <div class="d-flex gap-2">
 
@@ -36,7 +32,6 @@
             </a>
 
         @endif
-
 
         {{-- Add Task --}}
         @if($userRole === 'admin' || $userRole === 'manager')
@@ -85,19 +80,12 @@
             <tr>
 
                 <th>ID</th>
-
                 <th>Title</th>
-
                 <th>Description</th>
-
                 <th>Due Date</th>
-
                 <th>Priority</th>
-
                 <th>Status</th>
-
                 <th>Assigned To</th>
-
                 <th width="220">Action</th>
 
             </tr>
@@ -158,7 +146,6 @@
 
                     @endphp
 
-
                     <span class="badge bg-{{ $priorityBadge }}">
 
                         {{ ucwords($task->priority->value) }}
@@ -191,7 +178,6 @@
 
                     @endphp
 
-
                     <span class="badge bg-{{ $statusBadge }}">
 
                         {{ ucwords(
@@ -210,11 +196,11 @@
                 {{-- Assigned Employee --}}
                 <td class="text-center">
 
-                    @if($task->assignedUser)
+                    @if($task->assignee)
 
                         <span class="badge bg-info text-dark">
 
-                            {{ $task->assignedUser->name }}
+                            {{ $task->assignee->name }}
 
                         </span>
 

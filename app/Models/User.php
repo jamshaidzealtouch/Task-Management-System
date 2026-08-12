@@ -8,15 +8,13 @@ use Illuminate\Notifications\Notifiable;
 
 use App\Models\Project;
 use App\Models\Organization;
+use App\Models\Task;
 use App\Enums\UserRole;
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'name',
         'email',
@@ -24,26 +22,15 @@ class User extends Authenticatable
         'role',
         'organization_id',
     ];
-
-    /**
-     * The attributes that should be hidden.
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
-
-    /**
-     * User's projects.
-     */
     public function projects()
     {
-        return $this->hasMany(Project::class);
+        return $this->belongsToMany(Project::class)
+                    ->withPivot('role');
     }
-
-    /**
-     * Organizations owned by the user.
-     */
     public function organizations()
     {
         return $this->hasMany(
@@ -51,20 +38,26 @@ class User extends Authenticatable
             'owner_id'
         );
     }
-
-    /**
-     * Organization to which the user belongs.
-     */
     public function organization()
     {
         return $this->belongsTo(
             Organization::class
         );
     }
-
-    /**
-     * Attribute casting.
-     */
+    public function assignedTasks()
+    {
+        return $this->hasMany(
+            Task::class,
+            'assignee_id'
+        );
+    }
+    public function createdTasks()
+    {
+        return $this->hasMany(
+            Task::class,
+            'created_by'
+        );
+    }
     protected function casts(): array
     {
         return [

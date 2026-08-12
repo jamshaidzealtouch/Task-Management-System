@@ -9,6 +9,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationUserController;
+use App\Http\Controllers\ProjectUserController;
 
 
 /*
@@ -17,7 +18,6 @@ use App\Http\Controllers\OrganizationUserController;
 |--------------------------------------------------------------------------
 */
 
-// Login
 Route::get('/', [LoginController::class, 'index']);
 
 Route::get('/login', [LoginController::class, 'index'])
@@ -27,7 +27,6 @@ Route::post('/login', [LoginController::class, 'check'])
     ->name('login.check');
 
 
-// Register
 Route::get('/register', [RegisterController::class, 'index'])
     ->name('register');
 
@@ -42,6 +41,7 @@ Route::post('/register', [RegisterController::class, 'store'])
 */
 
 Route::middleware('auth.custom')->group(function () {
+
 
     /*
     |--------------------------------------------------------------------------
@@ -79,7 +79,10 @@ Route::middleware('auth.custom')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::resource('organizations', OrganizationController::class);
+    Route::resource(
+        'organizations',
+        OrganizationController::class
+    );
 
 
     /*
@@ -108,10 +111,6 @@ Route::middleware('auth.custom')->group(function () {
     |--------------------------------------------------------------------------
     | Organization Projects
     |--------------------------------------------------------------------------
-    |
-    | These routes are for viewing projects belonging to a specific
-    | organization.
-    |
     */
 
     Route::get(
@@ -136,7 +135,37 @@ Route::middleware('auth.custom')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::resource('projects', ProjectController::class);
+    Route::resource(
+        'projects',
+        ProjectController::class
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Project Users
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        'projects/{project}/users',
+        [ProjectUserController::class, 'index']
+    )->name('projects.users.index');
+
+    Route::get(
+        'projects/{project}/users/create',
+        [ProjectUserController::class, 'create']
+    )->name('projects.users.create');
+
+    Route::post(
+        'projects/{project}/users',
+        [ProjectUserController::class, 'store']
+    )->name('projects.users.store');
+
+    Route::delete(
+        'projects/{project}/users/{user}',
+        [ProjectUserController::class, 'destroy']
+    )->name('projects.users.destroy');
 
 
     /*
@@ -145,8 +174,34 @@ Route::middleware('auth.custom')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::resource('projects.tasks', TaskController::class)
-        ->scoped();
+    Route::resource(
+        'projects.tasks',
+        TaskController::class
+    )->scoped();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | My Tasks
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/my-tasks',
+        [TaskController::class, 'myTasks']
+    )->name('my.tasks');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Employee Update Task Status
+    |--------------------------------------------------------------------------
+    */
+
+    Route::patch(
+        '/my-tasks/{task}/status',
+        [TaskController::class, 'updateMyTaskStatus']
+    )->name('my.tasks.status');
 
 
     /*

@@ -34,6 +34,10 @@ class UpdateTaskRequest extends FormRequest
                 new Enum(TaskStatus::class),
             ],
 
+            'assignee_id' => [
+                'nullable',
+                'exists:users,id',
+            ],
         ];
     }
 }

@@ -15,25 +15,14 @@ class Organization extends Model
         'owner_id',
     ];
 
-    /**
-     * Organization owner (Admin).
-     */
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
-
-    /**
-     * Users belonging to this organization.
-     */
     public function users()
     {
         return $this->hasMany(User::class);
     }
-
-    /**
-     * Projects belonging to this organization.
-     */
     public function projects()
     {
         return $this->hasMany(Project::class);

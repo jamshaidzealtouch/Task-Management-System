@@ -6,24 +6,43 @@
 
     <div class="card-header">
 
-        <h3>
-            Add User to {{ $organization->name }}
-        </h3>
+        <h2 class="mb-0">
+            Add User to Project
+        </h2>
 
     </div>
 
 
     <div class="card-body">
 
-        {{-- Validation Errors --}}
+        {{-- Project Information --}}
+        <div class="alert alert-info">
 
-        @if($errors->any())
+            <div>
+                <strong>Project:</strong>
+                {{ $project->title }}
+            </div>
+
+            <div>
+                <strong>Organization:</strong>
+                {{ $organization->name }}
+            </div>
+
+        </div>
+
+
+        {{-- Validation Errors --}}
+        @if ($errors->any())
 
             <div class="alert alert-danger">
 
-                <ul class="mb-0">
+                <strong>
+                    Please fix the following errors:
+                </strong>
 
-                    @foreach($errors->all() as $error)
+                <ul class="mb-0 mt-2">
+
+                    @foreach ($errors->all() as $error)
 
                         <li>
                             {{ $error }}
@@ -39,14 +58,13 @@
 
 
         <form
-            action="{{ route('organizations.users.store', $organization) }}"
+            action="{{ route('projects.users.store', $project->id) }}"
             method="POST">
 
             @csrf
 
 
             {{-- Name --}}
-
             <div class="mb-3">
 
                 <label class="form-label">
@@ -58,17 +76,17 @@
                     name="name"
                     class="form-control"
                     value="{{ old('name') }}"
+                    placeholder="Enter user name"
                     required>
 
             </div>
 
 
             {{-- Email --}}
-
             <div class="mb-3">
 
                 <label class="form-label">
-                    Email Address
+                    Email
                 </label>
 
                 <input
@@ -76,13 +94,13 @@
                     name="email"
                     class="form-control"
                     value="{{ old('email') }}"
+                    placeholder="Enter user email"
                     required>
 
             </div>
 
 
             {{-- Password --}}
-
             <div class="mb-3">
 
                 <label class="form-label">
@@ -93,13 +111,17 @@
                     type="password"
                     name="password"
                     class="form-control"
+                    placeholder="Enter password"
                     required>
+
+                <small class="text-muted">
+                    Password must be at least 8 characters.
+                </small>
 
             </div>
 
 
             {{-- Confirm Password --}}
-
             <div class="mb-3">
 
                 <label class="form-label">
@@ -110,13 +132,13 @@
                     type="password"
                     name="password_confirmation"
                     class="form-control"
+                    placeholder="Confirm password"
                     required>
 
             </div>
 
 
             {{-- Role --}}
-
             <div class="mb-3">
 
                 <label class="form-label">
@@ -129,18 +151,28 @@
                     required>
 
                     <option value="">
-                        Select Role
+                        -- Select Role --
                     </option>
 
-                    <option value="manager"
-                        {{ old('role') == 'manager' ? 'selected' : '' }}>
 
-                        Manager
+                    {{-- Admin can create Manager --}}
+                    @if(session('user_role') === 'admin')
 
-                    </option>
+                        <option
+                            value="manager"
+                            {{ old('role') === 'manager' ? 'selected' : '' }}>
 
-                    <option value="employee"
-                        {{ old('role') == 'employee' ? 'selected' : '' }}>
+                            Manager
+
+                        </option>
+
+                    @endif
+
+
+                    {{-- Admin and Manager can create Employee --}}
+                    <option
+                        value="employee"
+                        {{ old('role') === 'employee' ? 'selected' : '' }}>
 
                         Employee
 
@@ -151,44 +183,21 @@
             </div>
 
 
-            {{-- Organization --}}
-
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Organization
-                </label>
-
-                <input
-                    type="text"
-                    class="form-control"
-                    value="{{ $organization->name }}"
-                    disabled>
-
-                <small class="text-muted">
-
-                    User will automatically be assigned
-                    to this organization.
-
-                </small>
-
-            </div>
-
-
+            {{-- Buttons --}}
             <button
                 type="submit"
                 class="btn btn-success">
 
-                Create User
+                Add User
 
             </button>
 
 
             <a
-                href="{{ route('organizations.users.index', $organization) }}"
+                href="{{ route('projects.users.index', $project->id) }}"
                 class="btn btn-secondary">
 
-                Cancel
+                Back
 
             </a>
 

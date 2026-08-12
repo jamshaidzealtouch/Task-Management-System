@@ -7,9 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    //user  role migration 
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {

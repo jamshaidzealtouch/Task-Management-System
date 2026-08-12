@@ -19,10 +19,12 @@ class Organization extends Model
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
+    // user relation 
     public function users()
     {
         return $this->hasMany(User::class);
     }
+    //project relation 
     public function projects()
     {
         return $this->hasMany(Project::class);

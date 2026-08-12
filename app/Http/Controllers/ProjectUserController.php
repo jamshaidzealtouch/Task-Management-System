@@ -180,7 +180,7 @@ class ProjectUserController extends Controller
                 'User account created and assigned to project successfully.'
             );
     }
-
+//delete base on role
     public function destroy(
         Project $project,
         User $user

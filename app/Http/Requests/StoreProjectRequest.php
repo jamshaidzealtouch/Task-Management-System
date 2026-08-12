@@ -10,7 +10,7 @@ class StoreProjectRequest extends FormRequest
     {
         return true;
     }
-
+//project add rule 
     public function rules(): array
     {
         return [

@@ -12,7 +12,7 @@ class StoreOrganizationRequest extends FormRequest
     {
         return true;
     }
-
+// new orgainzation  add rule 
     public function rules(): array
     {
         return [

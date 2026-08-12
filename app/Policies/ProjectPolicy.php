@@ -7,9 +7,7 @@ use App\Models\User;
 
 class ProjectPolicy
 {
-    /**
-     * View all projects.
-     */
+
     public function viewAny(User $user): bool
     {
         return in_array($user->role->value, [
@@ -17,10 +15,6 @@ class ProjectPolicy
             'manager',
         ]);
     }
-
-    /**
-     * View single project.
-     */
     public function view(User $user, Project $project): bool
     {
         return in_array($user->role->value, [
@@ -28,10 +22,6 @@ class ProjectPolicy
             'manager',
         ]);
     }
-
-    /**
-     * Create project.
-     */
     public function create(User $user): bool
     {
         return in_array($user->role->value, [
@@ -39,10 +29,6 @@ class ProjectPolicy
             'manager',
         ]);
     }
-
-    /**
-     * Update project.
-     */
     public function update(User $user, Project $project): bool
     {
         return in_array($user->role->value, [
@@ -50,18 +36,10 @@ class ProjectPolicy
             'manager',
         ]);
     }
-
-    /**
-     * Delete project.
-     */
     public function delete(User $user, Project $project): bool
     {
         return $user->role->value === 'admin';
     }
-
-    /**
-     * Manage users of project.
-     */
     public function manageUsers(User $user, Project $project): bool
     {
         return in_array($user->role->value, [
@@ -69,10 +47,6 @@ class ProjectPolicy
             'manager',
         ]);
     }
-
-    /**
-     * Add user to project.
-     */
     public function addUser(User $user, Project $project): bool
     {
         return in_array($user->role->value, [
@@ -80,10 +54,6 @@ class ProjectPolicy
             'manager',
         ]);
     }
-
-    /**
-     * Remove user from project.
-     */
     public function removeUser(User $user, Project $project): bool
     {
         return in_array($user->role->value, [

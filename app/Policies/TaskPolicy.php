@@ -7,9 +7,7 @@ use App\Models\User;
 
 class TaskPolicy
 {
-    /**
-     * View all tasks.
-     */
+
     public function viewAny(User $user): bool
     {
         return in_array($user->role->value, [
@@ -22,10 +20,6 @@ class TaskPolicy
 
         ]);
     }
-
-    /**
-     * View single task.
-     */
     public function view(User $user, Task $task): bool
     {
         return in_array($user->role->value, [
@@ -38,10 +32,6 @@ class TaskPolicy
 
         ]);
     }
-
-    /**
-     * Create task.
-     */
     public function create(User $user): bool
     {
         return in_array($user->role->value, [
@@ -52,10 +42,6 @@ class TaskPolicy
 
         ]);
     }
-
-    /**
-     * Update task.
-     */
     public function update(User $user, Task $task): bool
     {
         return in_array($user->role->value, [
@@ -68,10 +54,6 @@ class TaskPolicy
 
         ]);
     }
-
-    /**
-     * Delete task.
-     */
     public function delete(User $user, Task $task): bool
     {
         return $user->role->value === 'admin';

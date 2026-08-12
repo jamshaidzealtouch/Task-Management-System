@@ -10,7 +10,7 @@ class RegisterRequest extends FormRequest
     {
         return true;
     }
-
+//register rule 
     public function rules(): array
     {
         return [

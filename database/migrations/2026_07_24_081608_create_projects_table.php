@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    //project migration file 
     public function up(): void
     {
         Schema::create('projects', function (Blueprint $table) {

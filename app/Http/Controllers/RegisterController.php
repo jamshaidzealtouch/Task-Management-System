@@ -8,7 +8,7 @@ use App\Enums\UserRole;
 
 class RegisterController extends Controller
 {
-
+//register base on role 
     public function index()
     {
         return view('auth.register');

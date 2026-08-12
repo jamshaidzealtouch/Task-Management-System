@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-   
+   // organization migartion file 
     public function up(): void
     {
         Schema::create('organizations', function (Blueprint $table) {

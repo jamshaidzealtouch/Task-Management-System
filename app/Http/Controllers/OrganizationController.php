@@ -8,6 +8,8 @@ use App\Http\Requests\UpdateOrganizationRequest;
 
 class OrganizationController extends Controller
 {
+
+    //all data show 
     public function index()
     {
         $organizations = Organization::where(
@@ -20,11 +22,12 @@ class OrganizationController extends Controller
             compact('organizations')
         );
     }
+    //new organization create 
     public function create()
     {
         return view('organizations.create');
     }
-
+// data save in database
     public function store(StoreOrganizationRequest $request)
     {
         $data = $request->validated();
@@ -41,6 +44,7 @@ class OrganizationController extends Controller
                 'Organization created successfully.'
             );
     }
+    // show data ui
     public function show(Organization $organization)
     {
         if ($organization->owner_id != session('user_id')) {
@@ -52,7 +56,7 @@ class OrganizationController extends Controller
             compact('organization')
         );
     }
-
+//edit data organization 
     public function edit(Organization $organization)
     {
         if ($organization->owner_id != session('user_id')) {
@@ -84,6 +88,7 @@ class OrganizationController extends Controller
                 'Organization updated successfully.'
             );
     }
+    //delete data
     public function destroy(Organization $organization)
     {
         if ($organization->owner_id != session('user_id')) {

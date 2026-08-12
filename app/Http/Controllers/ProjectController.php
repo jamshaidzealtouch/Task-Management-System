@@ -9,6 +9,7 @@ use App\Models\Organization;
 
 class ProjectController extends Controller
 {
+    //Current logged-in user ki organizations find karna.
     private function getUserOrganizations()
     {
         $userId = session('user_id');
@@ -28,6 +29,7 @@ class ProjectController extends Controller
         return $this->getUserOrganizations()->firstOrFail();
     }
 
+    //Kya current user is organization ko access kar sakta hai?
     private function checkOrganizationAccess(
         Organization $organization
     ) {
@@ -52,7 +54,7 @@ class ProjectController extends Controller
             abort(404);
         }
     }
-
+//all project show 
     public function index()
     {
         $userId = session('user_id');
@@ -68,8 +70,6 @@ class ProjectController extends Controller
             )
             ->whereHas('tasks', function ($query) use ($userId) {
 
-                // Employee only sees projects
-                // having tasks assigned to them
                 $query->where(
                     'assignee_id',
                     $userId
@@ -132,7 +132,7 @@ class ProjectController extends Controller
             )
         );
     }
-
+// new record
     public function create()
     {
         $userRole = session('user_role');
@@ -178,7 +178,7 @@ class ProjectController extends Controller
             compact('organization')
         );
     }
-
+//save record
     public function store(
         StoreProjectRequest $request
     ) {
@@ -330,7 +330,7 @@ class ProjectController extends Controller
             )
         );
     }
-
+//update 
     public function update(
         UpdateProjectRequest $request,
         Project $project
@@ -387,7 +387,7 @@ class ProjectController extends Controller
                 'Project updated successfully.'
             );
     }
-
+//delete
     public function destroy(Project $project)
     {
         $userRole = session('user_role');

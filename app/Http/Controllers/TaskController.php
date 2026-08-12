@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+    //Ye current user ki organizations nikalta hai.
     private function getUserOrganizations()
     {
         $userId = session('user_id');
@@ -41,7 +42,7 @@ class TaskController extends Controller
         $organization = Organization::findOrFail(
             $project->organization_id
         );
-
+//Admin tabhi project access kar sakta hai jab woh organization ka owner ho.
         if ($userRole === 'admin') {
 
             if ($organization->owner_id != $userId) {
@@ -50,7 +51,7 @@ class TaskController extends Controller
 
             return $organization;
         }
-
+//Kya ye user organization ka member hai?
         $belongsToOrganization = $organization
             ->users()
             ->where('users.id', $userId)
@@ -82,7 +83,7 @@ class TaskController extends Controller
 
         return true;
     }
-
+//That's the right approach for your current organization/role structure.
     public function index(Project $project)
     {
         $this->checkProjectAccess($project);

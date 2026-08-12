@@ -23,8 +23,9 @@ class HomeController extends Controller
             $organization = Organization::find(
                 $user->organization_id
             );
-
+//organization
             if ($organization) {
+
                 $admin = User::find(
                     $organization->owner_id
                 );
@@ -37,7 +38,7 @@ class HomeController extends Controller
                 ->latest()
                 ->get();
         }
-
+//manager
         elseif ($userRole === 'manager') {
             $organization = Organization::whereHas(
                 'users',
@@ -56,6 +57,7 @@ class HomeController extends Controller
             }
         }
 
+        //admin
         elseif ($userRole === 'admin') {
             $organization = Organization::where(
                 'owner_id',

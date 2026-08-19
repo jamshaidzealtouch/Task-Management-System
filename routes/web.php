@@ -1,3 +1,4 @@
+```php
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -8,8 +9,8 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\OrganizationController;
-use App\Http\Controllers\OrganizationUserController;
 use App\Http\Controllers\ProjectUserController;
+use App\Http\Controllers\InvitationController;
 
 
 /*
@@ -18,6 +19,7 @@ use App\Http\Controllers\ProjectUserController;
 |--------------------------------------------------------------------------
 */
 
+// Login
 Route::get('/', [LoginController::class, 'index']);
 
 Route::get('/login', [LoginController::class, 'index'])
@@ -27,11 +29,38 @@ Route::post('/login', [LoginController::class, 'check'])
     ->name('login.check');
 
 
+// Normal Registration
 Route::get('/register', [RegisterController::class, 'index'])
     ->name('register');
 
 Route::post('/register', [RegisterController::class, 'store'])
     ->name('register.store');
+
+
+// ---------------------------------------------------------
+// Invitation Routes - PUBLIC
+// ---------------------------------------------------------
+
+// Open invitation link
+Route::get(
+    '/invitations/accept/{token}',
+    [InvitationController::class, 'accept']
+)->name('invitations.accept');
+
+
+// Show invitation registration form
+Route::get(
+    '/invitations/register/{token}',
+    [InvitationController::class, 'showRegister']
+)->name('invitations.register');
+
+
+// Submit invitation registration form
+Route::post(
+    '/invitations/register/{token}',
+    [InvitationController::class, 'completeRegistration']
+)->name('invitations.register.complete');
+
 
 
 /*
@@ -42,42 +71,33 @@ Route::post('/register', [RegisterController::class, 'store'])
 
 Route::middleware('auth.custom')->group(function () {
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Logout
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Logout
+    // ---------------------------------------------------------
 
     Route::post('/logout', [LoginController::class, 'logout'])
         ->name('logout');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Home
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Home
+    // ---------------------------------------------------------
 
     Route::get('/home', [HomeController::class, 'home'])
         ->name('home');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | About
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // About
+    // ---------------------------------------------------------
 
     Route::get('/about', [HomeController::class, 'about'])
         ->name('about');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Organizations
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Organizations
+    // ---------------------------------------------------------
 
     Route::resource(
         'organizations',
@@ -85,33 +105,9 @@ Route::middleware('auth.custom')->group(function () {
     );
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Organization Users
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get(
-        'organizations/{organization}/users',
-        [OrganizationUserController::class, 'index']
-    )->name('organizations.users.index');
-
-    Route::get(
-        'organizations/{organization}/users/create',
-        [OrganizationUserController::class, 'create']
-    )->name('organizations.users.create');
-
-    Route::post(
-        'organizations/{organization}/users',
-        [OrganizationUserController::class, 'store']
-    )->name('organizations.users.store');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Organization Projects
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Organization Projects
+    // ---------------------------------------------------------
 
     Route::get(
         'organizations/{organization}/projects',
@@ -129,11 +125,9 @@ Route::middleware('auth.custom')->group(function () {
     )->name('organizations.projects.store');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Projects
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Projects
+    // ---------------------------------------------------------
 
     Route::resource(
         'projects',
@@ -141,11 +135,9 @@ Route::middleware('auth.custom')->group(function () {
     );
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Project Users
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Project Users
+    // ---------------------------------------------------------
 
     Route::get(
         'projects/{project}/users',
@@ -168,11 +160,9 @@ Route::middleware('auth.custom')->group(function () {
     )->name('projects.users.destroy');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Tasks
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Tasks
+    // ---------------------------------------------------------
 
     Route::resource(
         'projects.tasks',
@@ -180,11 +170,9 @@ Route::middleware('auth.custom')->group(function () {
     )->scoped();
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | My Tasks
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // My Tasks
+    // ---------------------------------------------------------
 
     Route::get(
         '/my-tasks',
@@ -192,11 +180,9 @@ Route::middleware('auth.custom')->group(function () {
     )->name('my.tasks');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Employee Update Task Status
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Employee Update Task Status
+    // ---------------------------------------------------------
 
     Route::patch(
         '/my-tasks/{task}/status',
@@ -204,11 +190,9 @@ Route::middleware('auth.custom')->group(function () {
     )->name('my.tasks.status');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Deleted Tasks
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Deleted Tasks
+    // ---------------------------------------------------------
 
     Route::get(
         'projects/{project}/tasks/trash',
@@ -216,15 +200,33 @@ Route::middleware('auth.custom')->group(function () {
     )->name('projects.tasks.trash');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Restore Task
-    |--------------------------------------------------------------------------
-    */
+    // ---------------------------------------------------------
+    // Restore Task
+    // ---------------------------------------------------------
 
     Route::patch(
         'projects/{project}/tasks/{task}/restore',
         [TaskController::class, 'restore']
     )->name('projects.tasks.restore');
+
+
+    // ---------------------------------------------------------
+    // Invitations - ADMIN / MANAGER ONLY
+    // ---------------------------------------------------------
+
+    Route::get(
+        '/invitations',
+        [InvitationController::class, 'index']
+    )->name('invitations.index');
+
+    Route::get(
+        '/invitations/create',
+        [InvitationController::class, 'create']
+    )->name('invitations.create');
+
+    Route::post(
+        '/invitations',
+        [InvitationController::class, 'store']
+    )->name('invitations.store');
 
 });

@@ -111,7 +111,19 @@
 
                 </span>
 
+                @if(
+    session('user_role') === 'admin' ||
+    session('user_role') === 'manager'
+)
 
+    <a href="{{ route('invitations.create') }}"
+       class="btn btn-outline-light me-2">
+
+        Invite User
+
+    </a>
+
+@endif
                 {{-- Logout --}}
                 <form action="{{ route('logout') }}"
                       method="POST"

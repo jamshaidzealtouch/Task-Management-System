@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Invitation;
 
 class Organization extends Model
 {
@@ -29,4 +30,9 @@ class Organization extends Model
     {
         return $this->hasMany(Project::class);
     }
+    //invitation relation
+    public function invitations()
+{
+    return $this->hasMany(Invitation::class);
+}
 }

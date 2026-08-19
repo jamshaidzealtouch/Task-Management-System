@@ -64,121 +64,75 @@
             @csrf
 
 
-            {{-- Name --}}
+            {{-- Select Existing User --}}
             <div class="mb-3">
 
-                <label class="form-label">
-                    Full Name
+                <label
+                    for="user_id"
+                    class="form-label">
+
+                    Select User
+
                 </label>
 
-                <input
-                    type="text"
-                    name="name"
-                    class="form-control"
-                    value="{{ old('name') }}"
-                    placeholder="Enter user name"
-                    required>
-
-            </div>
-
-
-            {{-- Email --}}
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Email
-                </label>
-
-                <input
-                    type="email"
-                    name="email"
-                    class="form-control"
-                    value="{{ old('email') }}"
-                    placeholder="Enter user email"
-                    required>
-
-            </div>
-
-
-            {{-- Password --}}
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    name="password"
-                    class="form-control"
-                    placeholder="Enter password"
-                    required>
-
-                <small class="text-muted">
-                    Password must be at least 8 characters.
-                </small>
-
-            </div>
-
-
-            {{-- Confirm Password --}}
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Confirm Password
-                </label>
-
-                <input
-                    type="password"
-                    name="password_confirmation"
-                    class="form-control"
-                    placeholder="Confirm password"
-                    required>
-
-            </div>
-
-
-            {{-- Role --}}
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Role
-                </label>
 
                 <select
-                    name="role"
+                    name="user_id"
+                    id="user_id"
                     class="form-select"
                     required>
 
                     <option value="">
-                        -- Select Role --
+                        -- Select User --
                     </option>
 
 
-                    {{-- Admin can create Manager --}}
-                    @if(session('user_role') === 'admin')
+                    @forelse($users as $user)
+
+                        @php
+
+                            $role = $user->role instanceof \App\Enums\UserRole
+                                ? $user->role->value
+                                : $user->role;
+
+                        @endphp
+
 
                         <option
-                            value="manager"
-                            {{ old('role') === 'manager' ? 'selected' : '' }}>
+                            value="{{ $user->id }}"
+                            {{ old('user_id') == $user->id ? 'selected' : '' }}>
 
-                            Manager
+                            {{ $user->name }}
+                            -
+                            {{ $user->email }}
+                            ({{ ucfirst($role) }})
 
                         </option>
 
-                    @endif
+                    @empty
 
+                        <option
+                            value=""
+                            disabled>
 
-                    {{-- Admin and Manager can create Employee --}}
-                    <option
-                        value="employee"
-                        {{ old('role') === 'employee' ? 'selected' : '' }}>
+                            No accepted users found
 
-                        Employee
+                        </option>
 
-                    </option>
+                    @endforelse
 
                 </select>
+
+
+                @error('user_id')
+
+                    <div class="text-danger mt-1">
+
+                        {{ $message }}
+
+                    </div>
+
+                @enderror
 
             </div>
 

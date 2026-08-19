@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class ProjectUserController extends Controller
 {
+    // all user show
     public function index(Project $project)
     {
         $userRole = session('user_role');
@@ -51,7 +51,7 @@ class ProjectUserController extends Controller
             )
         );
     }
-
+// new user create 
     public function create(Project $project)
     {
         $userRole = session('user_role');
@@ -81,15 +81,37 @@ class ProjectUserController extends Controller
             }
         }
 
+        $users = $organization
+            ->users()
+            ->get();
+
+        $assignedUserIds = $project
+            ->users()
+            ->pluck('users.id');
+
+        $users = $users
+            ->whereNotIn('id', $assignedUserIds);
+
+        if ($userRole === 'manager') {
+            $users = $users->filter(function ($user) {
+                $role = $user->role instanceof \App\Enums\UserRole
+                    ? $user->role->value
+                    : $user->role;
+
+                return $role === 'employee';
+            });
+        }
+
         return view(
             'projects.users.create',
             compact(
                 'project',
-                'organization'
+                'organization',
+                'users'
             )
         );
     }
-
+// user save in database
     public function store(
         Request $request,
         Project $project
@@ -122,53 +144,48 @@ class ProjectUserController extends Controller
         }
 
         $data = $request->validate([
-            'name' => [
+            'user_id' => [
                 'required',
-                'string',
-                'max:255',
-            ],
-
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                'unique:users,email',
-            ],
-
-            'password' => [
-                'required',
-                'string',
-                'min:4',
-                'confirmed',
-            ],
-
-            'role' => [
-                'required',
-                'in:manager,employee',
+                'integer',
+                'exists:users,id',
             ],
         ]);
 
+        $user = User::findOrFail($data['user_id']);
+
+        if ($user->organization_id != $organization->id) {
+            abort(403);
+        }
+
+        $role = $user->role instanceof \App\Enums\UserRole
+            ? $user->role->value
+            : $user->role;
+
         if (
             $userRole === 'manager' &&
-            $data['role'] !== 'employee'
+            $role !== 'employee'
         ) {
             abort(403);
         }
 
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'role' => $data['role'],
-            'organization_id' => $organization->id,
-        ]);
+        $alreadyAssigned = $project
+            ->users()
+            ->where('users.id', $user->id)
+            ->exists();
 
-        $project->users()->attach(
-            $user->id,
-            [
-                'role' => $data['role'],
-            ]
-        );
+        if ($alreadyAssigned) {
+            return back()
+                ->with('error', 'This user is already assigned to the project.');
+        }
+
+        $project
+            ->users()
+            ->attach(
+                $user->id,
+                [
+                    'role' => $role,
+                ]
+            );
 
         return redirect()
             ->route(
@@ -177,10 +194,10 @@ class ProjectUserController extends Controller
             )
             ->with(
                 'success',
-                'User account created and assigned to project successfully.'
+                'User added to project successfully.'
             );
     }
-//delete base on role
+
     public function destroy(
         Project $project,
         User $user
@@ -221,9 +238,13 @@ class ProjectUserController extends Controller
             abort(404);
         }
 
+        $userRoleValue = $user->role instanceof \App\Enums\UserRole
+            ? $user->role->value
+            : $user->role;
+
         if (
             $userRole === 'manager' &&
-            $user->role->value !== 'employee'
+            $userRoleValue !== 'employee'
         ) {
             abort(403);
         }

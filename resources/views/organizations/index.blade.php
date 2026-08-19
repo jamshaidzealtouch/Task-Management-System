@@ -1,17 +1,30 @@
 @extends('layouts.app')
 
+
 @section('content')
+
 
 <div class="container mt-4">
 
+
     <div class="d-flex justify-content-between align-items-center mb-4">
+
 
         <h2 class="mb-0">Organization List</h2>
 
-        <a href="{{ route('organizations.create') }}"
-           class="btn btn-primary">
-            Add Organization
-        </a>
+
+        {{-- Add Organization --}}
+        @if(session('user_role') === 'admin')
+
+            <a href="{{ route('organizations.create') }}"
+               class="btn btn-primary">
+
+                Add Organization
+
+            </a>
+
+        @endif
+
 
     </div>
 
@@ -36,7 +49,9 @@
 
     <div class="table-responsive">
 
+
         <table class="table table-bordered table-hover align-middle">
+
 
             <thead class="table-dark text-center">
 
@@ -57,9 +72,12 @@
 
             <tbody>
 
+
                 @forelse($organizations as $organization)
 
+
                     <tr>
+
 
                         {{-- ID --}}
                         <td>
@@ -69,9 +87,11 @@
 
                         {{-- Organization Name --}}
                         <td>
+
                             <strong>
                                 {{ $organization->name }}
                             </strong>
+
                         </td>
 
 
@@ -102,6 +122,7 @@
                         {{-- Actions --}}
                         <td>
 
+
                             <div class="d-flex justify-content-center gap-2 flex-wrap">
 
 
@@ -126,19 +147,7 @@
 
                                     Edit
 
-                                <!-- </a>
-
-
-                                {{-- Users --}}
-                                <a href="{{ route(
-                                    'organizations.users.index',
-                                    $organization->id
-                                ) }}"
-                                   class="btn btn-success btn-sm">
-
-                                    Users
-
-                                </a> -->
+                                </a>
 
 
                                 {{-- Projects --}}
@@ -176,13 +185,18 @@
 
                                 </form>
 
+
                             </div>
+
 
                         </td>
 
+
                     </tr>
 
+
                 @empty
+
 
                     <tr>
 
@@ -195,13 +209,18 @@
 
                     </tr>
 
+
                 @endforelse
+
 
             </tbody>
 
+
         </table>
 
+
     </div>
+
 
 </div>
 
@@ -217,7 +236,9 @@ setTimeout(function () {
         alert.classList.remove('show');
 
         setTimeout(function () {
+
             alert.remove();
+
         }, 500);
 
     }
@@ -225,5 +246,6 @@ setTimeout(function () {
 }, 5000);
 
 </script>
+
 
 @endsection

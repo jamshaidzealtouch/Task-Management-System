@@ -8,28 +8,60 @@ use App\Http\Requests\UpdateOrganizationRequest;
 
 class OrganizationController extends Controller
 {
-
-    //all data show 
+    // all data show
     public function index()
     {
-        $organizations = Organization::where(
-            'owner_id',
-            session('user_id')
-        )->get();
+        $userId = session('user_id');
+        $userRole = session('user_role');
+
+        if ($userRole === 'admin') {
+
+            // Admin sees organizations owned by him
+            $organizations = Organization::where(
+                'owner_id',
+                $userId
+            )->get();
+
+        } elseif ($userRole === 'manager') {
+
+            // Manager sees organizations where he is assigned
+            $organizations = Organization::whereHas(
+                'users',
+                function ($query) use ($userId) {
+                    $query->where('users.id', $userId);
+                }
+            )->get();
+
+        } else {
+
+            abort(403);
+        }
 
         return view(
             'organizations.index',
             compact('organizations')
         );
     }
-    //new organization create 
+
+    // new organization create
     public function create()
     {
+        // Only admin can create organization
+        if (session('user_role') !== 'admin') {
+            abort(403);
+        }
+
         return view('organizations.create');
     }
-// data save in database
+
+    // data save in database
     public function store(StoreOrganizationRequest $request)
     {
+        // Only admin can create organization
+        if (session('user_role') !== 'admin') {
+            abort(403);
+        }
+
         $data = $request->validated();
 
         // Logged-in user becomes the owner/admin
@@ -44,6 +76,7 @@ class OrganizationController extends Controller
                 'Organization created successfully.'
             );
     }
+
     // show data ui
     public function show(Organization $organization)
     {
@@ -56,7 +89,8 @@ class OrganizationController extends Controller
             compact('organization')
         );
     }
-//edit data organization 
+
+    // edit data organization
     public function edit(Organization $organization)
     {
         if ($organization->owner_id != session('user_id')) {
@@ -88,7 +122,8 @@ class OrganizationController extends Controller
                 'Organization updated successfully.'
             );
     }
-    //delete data
+
+    // delete data
     public function destroy(Organization $organization)
     {
         if ($organization->owner_id != session('user_id')) {

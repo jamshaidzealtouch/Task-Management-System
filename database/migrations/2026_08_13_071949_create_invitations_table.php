@@ -8,23 +8,34 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // inviation 
         Schema::create('invitations', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('organization_id')
-                  ->constrained('organizations')
-                  ->onDelete('cascade');
+            $table->foreignId('project_id')
+                ->constrained('projects')
+                ->cascadeOnDelete();
 
             $table->foreignId('invited_by')
-                  ->constrained('users')
-                  ->onDelete('cascade');
+                ->constrained('users')
+                ->onDelete('cascade');
 
             $table->string('email');
-            $table->string('role');
+
+            $table->enum('role', [
+                'manager',
+                'employee',
+            ]);
+
             $table->string('token')->unique();
-            $table->string('status')->default('pending');
+
+            $table->enum('status', [
+                'pending',
+                'accepted',
+                'expired',
+            ])->default('pending');
+
             $table->timestamp('expires_at')->nullable();
+            $table->timestamp('accepted_at')->nullable();
 
             $table->timestamps();
         });

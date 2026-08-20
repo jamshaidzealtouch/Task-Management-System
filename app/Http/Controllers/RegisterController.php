@@ -16,13 +16,11 @@ class RegisterController extends Controller
     public function store(RegisterRequest $request)
     {
         $data = $request->validated();
-
-        $data['role'] = UserRole::from(
-            $request->input('role')
-        );
-
+    
+        $data['role'] = UserRole::Admin;
+    
         User::create($data);
-
+    
         return redirect()
             ->route('login')
             ->with(

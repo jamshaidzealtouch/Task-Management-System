@@ -58,8 +58,8 @@
 
                 {{-- Organizations --}}
                 @if(
-                    session('user_role') == 'admin' ||
-                    session('user_role') == 'manager'
+                    session('user_role') === 'admin' ||
+                    session('user_role') === 'manager'
                 )
 
                     <a href="{{ route('organizations.index') }}"
@@ -74,9 +74,9 @@
 
                 {{-- Projects --}}
                 @if(
-                    session('user_role') == 'admin' ||
-                    session('user_role') == 'manager' ||
-                    session('user_role') == 'employee'
+                    session('user_role') === 'admin' ||
+                    session('user_role') === 'manager' ||
+                    session('user_role') === 'employee'
                 )
 
                     <a href="{{ route('projects.index') }}"
@@ -90,12 +90,38 @@
 
 
                 {{-- Employee My Tasks --}}
-                @if(session('user_role') == 'employee')
+                @if(session('user_role') === 'employee')
 
                     <a href="{{ route('my.tasks') }}"
                        class="btn btn-outline-light me-2">
 
                         My Tasks
+
+                    </a>
+
+                @endif
+
+
+                {{-- Project Based Invite User --}}
+                @php
+                    $currentProject = request()->route('project');
+                @endphp
+
+                @if(
+                    ($currentProject instanceof \App\Models\Project) &&
+                    (
+                        session('user_role') === 'admin' ||
+                        session('user_role') === 'manager'
+                    )
+                )
+
+                    <a href="{{ route(
+                        'projects.invitations.create',
+                        $currentProject->id
+                    ) }}"
+                       class="btn btn-outline-light me-2">
+
+                        Invite User
 
                     </a>
 
@@ -111,19 +137,7 @@
 
                 </span>
 
-                @if(
-    session('user_role') === 'admin' ||
-    session('user_role') === 'manager'
-)
 
-    <a href="{{ route('invitations.create') }}"
-       class="btn btn-outline-light me-2">
-
-        Invite User
-
-    </a>
-
-@endif
                 {{-- Logout --}}
                 <form action="{{ route('logout') }}"
                       method="POST"

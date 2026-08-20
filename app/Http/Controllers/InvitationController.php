@@ -3,55 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invitation;
-use App\Models\Organization;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InvitationMail;
 
 class InvitationController extends Controller
 {
-    public function index()
-    {
-        $userId = session('user_id');
-        $userRole = session('user_role');
-
-        if ($userRole === 'admin') {
-
-            $organizations = Organization::where(
-                'owner_id',
-                $userId
-            )->get();
-
-        } else {
-
-            $organizations = Organization::whereHas(
-                'users',
-                function ($query) use ($userId) {
-                    $query->where('users.id', $userId);
-                }
-            )->get();
-        }
-
-        $invitations = Invitation::whereIn(
-            'organization_id',
-            $organizations->pluck('id')
-        )
-        ->latest()
-        ->get();
-
-        return view(
-            'invitations.index',
-            compact(
-                'organizations',
-                'invitations'
-            )
-        );
-    }
-
-
-    public function create()
+    public function create(Project $project)
     {
         $userId = session('user_id');
         $userRole = session('user_role');
@@ -61,98 +23,99 @@ class InvitationController extends Controller
         }
 
         if ($userRole === 'admin') {
-
-            $organizations = Organization::where(
-                'owner_id',
-                $userId
-            )->get();
-
-        } else {
-
-            $organizations = Organization::whereHas(
-                'users',
-                function ($query) use ($userId) {
-                    $query->where('users.id', $userId);
-                }
-            )->get();
+            if ($project->organization->owner_id != $userId) {
+                abort(403);
+            }
         }
 
-        return view(
-            'invitations.create',
-            compact('organizations')
-        );
+        if ($userRole === 'manager') {
+            $belongsToOrganization = $project->organization
+                ->users()
+                ->where('users.id', $userId)
+                ->exists();
+
+            if (!$belongsToOrganization) {
+                abort(403);
+            }
+        }
+
+        return view('invitations.create', compact('project'));
     }
 
-
-    public function store(Request $request)
+    public function store(Request $request, Project $project)
     {
         $userId = session('user_id');
         $userRole = session('user_role');
 
         if (!in_array($userRole, ['admin', 'manager'])) {
             abort(403);
+        }
+
+        if ($userRole === 'admin') {
+            if ($project->organization->owner_id != $userId) {
+                abort(403);
+            }
+        }
+
+        if ($userRole === 'manager') {
+            $belongsToOrganization = $project->organization
+                ->users()
+                ->where('users.id', $userId)
+                ->exists();
+
+            if (!$belongsToOrganization) {
+                abort(403);
+            }
         }
 
         $data = $request->validate([
-            'organization_id' => [
-                'required',
-                'exists:organizations,id',
-            ],
-
             'email' => [
                 'required',
                 'email',
                 'max:255',
             ],
-
             'role' => [
                 'required',
                 'in:manager,employee',
             ],
         ]);
 
-        $organization = Organization::findOrFail(
-            $data['organization_id']
-        );
+        if (
+            $userRole === 'manager' &&
+            $data['role'] !== 'employee'
+        ) {
+            abort(403);
+        }
 
-        if ($userRole === 'admin') {
+        $existingUser = User::where(
+            'email',
+            $data['email']
+        )->first();
 
-            if ($organization->owner_id != $userId) {
-                abort(404);
-            }
-
-        } else {
-
-            $belongsToOrganization = $organization
-                ->users()
-                ->where('users.id', $userId)
+        if ($existingUser) {
+            $alreadyMember = $project->users()
+                ->where('users.id', $existingUser->id)
                 ->exists();
 
-            if (!$belongsToOrganization) {
-                abort(404);
-            }
-
-            if ($data['role'] !== 'employee') {
-                abort(403);
+            if ($alreadyMember) {
+                return back()
+                    ->withErrors([
+                        'email' =>
+                            'This user is already a member of this project.'
+                    ])
+                    ->withInput();
             }
         }
 
         $existingInvitation = Invitation::where(
-            'organization_id',
-            $organization->id
+            'project_id',
+            $project->id
         )
-        ->where(
-            'email',
-            $data['email']
-        )
-        ->where(
-            'status',
-            'pending'
-        )
-        ->exists();
+            ->where('email', $data['email'])
+            ->where('status', 'pending')
+            ->exists();
 
         if ($existingInvitation) {
-
             return back()
                 ->withErrors([
                     'email' =>
@@ -166,7 +129,7 @@ class InvitationController extends Controller
         );
 
         $invitation = Invitation::create([
-            'organization_id' => $organization->id,
+            'project_id' => $project->id,
             'invited_by' => $userId,
             'email' => $data['email'],
             'role' => $data['role'],
@@ -181,23 +144,34 @@ class InvitationController extends Controller
             );
 
         return redirect()
-            ->route('invitations.index')
+            ->route(
+                'projects.users.index',
+                $project->id
+            )
             ->with(
                 'success',
                 'Invitation sent successfully.'
             );
     }
 
-
     public function accept($token)
     {
         $invitation = Invitation::where(
             'token',
             $token
-        )->firstOrFail();
+        )->first();
+
+        if (!$invitation) {
+            return view(
+                'invitations.invalid',
+                [
+                    'message' =>
+                        'This invitation is invalid or no longer available.'
+                ]
+            );
+        }
 
         if ($invitation->status !== 'pending') {
-
             return view(
                 'invitations.invalid',
                 [
@@ -209,9 +183,10 @@ class InvitationController extends Controller
 
         if (
             $invitation->expires_at &&
-            now()->greaterThan($invitation->expires_at)
+            now()->greaterThan(
+                $invitation->expires_at
+            )
         ) {
-
             $invitation->update([
                 'status' => 'expired',
             ]);
@@ -225,36 +200,64 @@ class InvitationController extends Controller
             );
         }
 
-        return redirect()->route(
-            'invitations.register',
-            $invitation->token
-        );
-    }
+        $user = User::where(
+            'email',
+            $invitation->email
+        )->first();
 
+        if (!$user) {
+            return redirect()->route(
+                'invitations.register',
+                $invitation->token
+            );
+        }
+
+        $this->acceptInvitationForUser(
+            $invitation,
+            $user
+        );
+
+        return redirect()
+            ->route('login')
+            ->with(
+                'success',
+                'Invitation accepted successfully. You can now login and access the project.'
+            );
+    }
 
     public function showRegister($token)
     {
         $invitation = Invitation::where(
             'token',
             $token
-        )->firstOrFail();
+        )->first();
 
-        if ($invitation->status !== 'pending') {
-
+        if (!$invitation) {
             return view(
                 'invitations.invalid',
                 [
                     'message' =>
-                        'This invitation is no longer available.'
+                        'This invitation is invalid or no longer available.'
+                ]
+            );
+        }
+
+        if ($invitation->status !== 'pending') {
+            return view(
+                'invitations.invalid',
+                [
+                    'message' =>
+                        'This invitation has already been accepted or is no longer available.'
                 ]
             );
         }
 
         if (
             $invitation->expires_at &&
-            now()->greaterThan($invitation->expires_at)
+            now()->greaterThan(
+                $invitation->expires_at
+            )
         ) {
-
             $invitation->update([
                 'status' => 'expired',
             ]);
@@ -265,6 +268,18 @@ class InvitationController extends Controller
                     'message' =>
                         'This invitation has expired.'
                 ]
+            );
+        }
+
+        $existingUser = User::where(
+            'email',
+            $invitation->email
+        )->first();
+
+        if ($existingUser) {
+            return redirect()->route(
+                'invitations.accept',
+                $invitation->token
             );
         }
 
@@ -274,32 +289,41 @@ class InvitationController extends Controller
         );
     }
 
-
-    public function register(
+    public function completeRegistration(
         Request $request,
         $token
     ) {
         $invitation = Invitation::where(
             'token',
             $token
-        )->firstOrFail();
+        )->first();
 
-        if ($invitation->status !== 'pending') {
-
+        if (!$invitation) {
             return view(
                 'invitations.invalid',
                 [
                     'message' =>
-                        'This invitation is no longer available.'
+                        'This invitation is invalid or no longer available.'
+                ]
+            );
+        }
+
+        if ($invitation->status !== 'pending') {
+            return view(
+                'invitations.invalid',
+                [
+                    'message' =>
+                        'This invitation has already been accepted or is no longer available.'
                 ]
             );
         }
 
         if (
             $invitation->expires_at &&
-            now()->greaterThan($invitation->expires_at)
+            now()->greaterThan(
+                $invitation->expires_at
+            )
         ) {
-
             $invitation->update([
                 'status' => 'expired',
             ]);
@@ -319,128 +343,88 @@ class InvitationController extends Controller
                 'string',
                 'max:255',
             ],
-
             'password' => [
                 'required',
                 'string',
-                'min:4',
+                'min:8',
                 'confirmed',
             ],
         ]);
 
+        $email = $invitation->email;
+
         $existingUser = User::where(
             'email',
-            $invitation->email
+            $email
         )->first();
 
         if ($existingUser) {
+            $this->acceptInvitationForUser(
+                $invitation,
+                $existingUser
+            );
 
-            return back()
-                ->withErrors([
-                    'email' =>
-                        'An account with this email already exists.'
-                ])
-                ->withInput();
+            return redirect()
+                ->route('login')
+                ->with(
+                    'success',
+                    'Your account already exists and the invitation has been accepted. Please login.'
+                );
         }
 
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $invitation->email,
-            'password' => Hash::make($data['password']),
-            'role' => $invitation->role,
-            'organization_id' => $invitation->organization_id,
-        ]);
+        DB::transaction(function () use (
+            $data,
+            $email,
+            $invitation
+        ) {
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $email,
+                'password' => Hash::make(
+                    $data['password']
+                ),
+            ]);
 
-        $invitation->update([
-            'status' => 'accepted',
-            'accepted_at' => now(),
-        ]);
+            $this->acceptInvitationForUser(
+                $invitation,
+                $user
+            );
+        });
 
         return redirect()
             ->route('login')
             ->with(
                 'success',
-                'Account created successfully. You can now login.'
+                'Account created and invitation accepted successfully. Please login.'
             );
     }
-    public function completeRegistration(Request $request, $token)
-{
-    $invitation = Invitation::where(
-        'token',
-        $token
-    )->firstOrFail();
 
-    // Check invitation status
-    if ($invitation->status !== 'pending') {
-        return view(
-            'invitations.invalid',
-            [
-                'message' => 'This invitation is no longer available.'
-            ]
-        );
-    }
-
-    // Check expiry
-    if (
-        $invitation->expires_at &&
-        now()->greaterThan($invitation->expires_at)
+    private function acceptInvitationForUser(
+        Invitation $invitation,
+        User $user
     ) {
+        $alreadyMember = $invitation->project
+            ->users()
+            ->where(
+                'users.id',
+                $user->id
+            )
+            ->exists();
+
+        if (!$alreadyMember) {
+            $invitation->project
+                ->users()
+                ->attach(
+                    $user->id,
+                    [
+                        'role' => $invitation->role,
+                    ]
+                );
+        }
+
         $invitation->update([
-            'status' => 'expired',
+            'status' => 'accepted',
+            'accepted_at' => now(),
         ]);
-
-        return view(
-            'invitations.invalid',
-            [
-                'message' => 'This invitation has expired.'
-            ]
-        );
     }
-
-    // Validate registration data
-    $data = $request->validate([
-        'name' => [
-            'required',
-            'string',
-            'max:255',
-        ],
-
-        'password' => [
-            'required',
-            'string',
-            'min:8',
-            'confirmed',
-        ],
-    ]);
-
-    // Check if email already exists
-    if (User::where('email', $invitation->email)->exists()) {
-        return back()
-            ->withErrors([
-                'email' => 'An account with this email already exists.'
-            ]);
-    }
-
-    // Create user
-    $user = User::create([
-        'name' => $data['name'],
-        'email' => $invitation->email,
-        'password' => Hash::make($data['password']),
-        'role' => $invitation->role,
-        'organization_id' => $invitation->organization_id,
-    ]);
-
-    // Mark invitation as accepted
-    $invitation->update([
-        'status' => 'accepted',
-        'accepted_at' => now(),
-    ]);
-
-    return redirect()
-        ->route('login')
-        ->with(
-            'success',
-            'Account created successfully. You can now login.'
-        );
-}
 }

@@ -11,17 +11,13 @@ use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    //Ye current user ki organizations nikalta hai.
     private function getUserOrganizations()
     {
         $userId = session('user_id');
         $userRole = session('user_role');
 
         if ($userRole === 'admin') {
-            return Organization::where(
-                'owner_id',
-                $userId
-            )->get();
+            return Organization::where('owner_id', $userId)->get();
         }
 
         return Organization::whereHas('users', function ($query) use ($userId) {
@@ -39,19 +35,16 @@ class TaskController extends Controller
         $userId = session('user_id');
         $userRole = session('user_role');
 
-        $organization = Organization::findOrFail(
-            $project->organization_id
-        );
-//Admin tabhi project access kar sakta hai jab woh organization ka owner ho.
-        if ($userRole === 'admin') {
+        $organization = Organization::findOrFail($project->organization_id);
 
+        if ($userRole === 'admin') {
             if ($organization->owner_id != $userId) {
                 abort(404);
             }
 
             return $organization;
         }
-//Kya ye user organization ka member hai?
+
         $belongsToOrganization = $organization
             ->users()
             ->where('users.id', $userId)
@@ -64,10 +57,8 @@ class TaskController extends Controller
         return $organization;
     }
 
-    private function checkTaskAccess(
-        Project $project,
-        Task $task
-    ) {
+    private function checkTaskAccess(Project $project, Task $task)
+    {
         $this->checkProjectAccess($project);
 
         if ($task->project_id != $project->id) {
@@ -83,7 +74,7 @@ class TaskController extends Controller
 
         return true;
     }
-//That's the right approach for your current organization/role structure.
+
     public function index(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -92,18 +83,19 @@ class TaskController extends Controller
         $userRole = session('user_role');
 
         if ($userRole === 'employee') {
-
-            $tasks = $project->tasks()
+            $tasks = $project
+                ->tasks()
                 ->where('assignee_id', $userId)
+                ->latest()
                 ->get();
-
         } elseif (
             $userRole === 'admin' ||
             $userRole === 'manager'
         ) {
-
-            $tasks = $project->tasks()->get();
-
+            $tasks = $project
+                ->tasks()
+                ->latest()
+                ->get();
         } else {
             abort(403);
         }
@@ -127,9 +119,9 @@ class TaskController extends Controller
             abort(403);
         }
 
-        $employees = $project->organization
+        $employees = $project
             ->users()
-            ->where('role', 'employee')
+            ->where('users.role', 'employee')
             ->get();
 
         return view(
@@ -156,18 +148,10 @@ class TaskController extends Controller
         $data = $request->validated();
 
         if (!empty($data['assignee_id'])) {
-
             $employeeExists = $project
-                ->organization
                 ->users()
-                ->where(
-                    'users.id',
-                    $data['assignee_id']
-                )
-                ->where(
-                    'role',
-                    'employee'
-                )
+                ->where('users.id', $data['assignee_id'])
+                ->where('users.role', 'employee')
                 ->exists();
 
             if (!$employeeExists) {
@@ -176,30 +160,20 @@ class TaskController extends Controller
         }
 
         $data['project_id'] = $project->id;
-
         $data['created_by'] = session('user_id');
 
         Task::create($data);
 
         return redirect()
-            ->route(
-                'projects.tasks.index',
-                $project->id
-            )
-            ->with(
-                'success',
-                'Task added successfully.'
-            );
+            ->route('projects.tasks.index', $project->id)
+            ->with('success', 'Task added successfully.');
     }
 
     public function show(
         Project $project,
         Task $task
     ) {
-        $this->checkTaskAccess(
-            $project,
-            $task
-        );
+        $this->checkTaskAccess($project, $task);
 
         return view(
             'tasks.show',
@@ -211,10 +185,7 @@ class TaskController extends Controller
         Project $project,
         Task $task
     ) {
-        $this->checkTaskAccess(
-            $project,
-            $task
-        );
+        $this->checkTaskAccess($project, $task);
 
         $userRole = session('user_role');
 
@@ -226,18 +197,13 @@ class TaskController extends Controller
         }
 
         $employees = $project
-            ->organization
             ->users()
-            ->where('role', 'employee')
+            ->where('users.role', 'employee')
             ->get();
 
         return view(
             'tasks.edit',
-            compact(
-                'project',
-                'task',
-                'employees'
-            )
+            compact('project', 'task', 'employees')
         );
     }
 
@@ -246,15 +212,11 @@ class TaskController extends Controller
         Project $project,
         Task $task
     ) {
-        $this->checkTaskAccess(
-            $project,
-            $task
-        );
+        $this->checkTaskAccess($project, $task);
 
         $data = $request->validated();
 
         if (session('user_role') === 'employee') {
-
             if (!array_key_exists('status', $data)) {
                 abort(403);
             }
@@ -262,9 +224,7 @@ class TaskController extends Controller
             $task->update([
                 'status' => $data['status'],
             ]);
-
         } else {
-
             if (
                 session('user_role') !== 'admin' &&
                 session('user_role') !== 'manager'
@@ -273,18 +233,10 @@ class TaskController extends Controller
             }
 
             if (!empty($data['assignee_id'])) {
-
                 $employeeExists = $project
-                    ->organization
                     ->users()
-                    ->where(
-                        'users.id',
-                        $data['assignee_id']
-                    )
-                    ->where(
-                        'role',
-                        'employee'
-                    )
+                    ->where('users.id', $data['assignee_id'])
+                    ->where('users.role', 'employee')
                     ->exists();
 
                 if (!$employeeExists) {
@@ -296,24 +248,15 @@ class TaskController extends Controller
         }
 
         return redirect()
-            ->route(
-                'projects.tasks.index',
-                $project->id
-            )
-            ->with(
-                'success',
-                'Task updated successfully.'
-            );
+            ->route('projects.tasks.index', $project->id)
+            ->with('success', 'Task updated successfully.');
     }
 
     public function destroy(
         Project $project,
         Task $task
     ) {
-        $this->checkTaskAccess(
-            $project,
-            $task
-        );
+        $this->checkTaskAccess($project, $task);
 
         $userRole = session('user_role');
 
@@ -327,14 +270,8 @@ class TaskController extends Controller
         $task->delete();
 
         return redirect()
-            ->route(
-                'projects.tasks.index',
-                $project->id
-            )
-            ->with(
-                'success',
-                'Task deleted successfully.'
-            );
+            ->route('projects.tasks.index', $project->id)
+            ->with('success', 'Task deleted successfully.');
     }
 
     public function trash(Project $project)
@@ -351,18 +288,13 @@ class TaskController extends Controller
         }
 
         $tasks = Task::onlyTrashed()
-            ->where(
-                'project_id',
-                $project->id
-            )
+            ->where('project_id', $project->id)
+            ->latest()
             ->get();
 
         return view(
             'tasks.trash',
-            compact(
-                'project',
-                'tasks'
-            )
+            compact('project', 'tasks')
         );
     }
 
@@ -382,23 +314,14 @@ class TaskController extends Controller
         }
 
         $task = Task::onlyTrashed()
-            ->where(
-                'project_id',
-                $project->id
-            )
+            ->where('project_id', $project->id)
             ->findOrFail($task);
 
         $task->restore();
 
         return redirect()
-            ->route(
-                'projects.tasks.trash',
-                $project->id
-            )
-            ->with(
-                'success',
-                'Task restored successfully.'
-            );
+            ->route('projects.tasks.trash', $project->id)
+            ->with('success', 'Task restored successfully.');
     }
 
     public function myTasks()
@@ -413,29 +336,7 @@ class TaskController extends Controller
         $tasks = Task::with([
             'project.organization'
         ])
-            ->where(
-                'assignee_id',
-                $userId
-            )
-            ->whereHas('project', function ($query) use ($userId) {
-
-                $query->whereHas(
-                    'organization',
-                    function ($query) use ($userId) {
-
-                        $query->whereHas(
-                            'users',
-                            function ($query) use ($userId) {
-
-                                $query->where(
-                                    'users.id',
-                                    $userId
-                                );
-                            }
-                        );
-                    }
-                );
-            })
+            ->where('assignee_id', $userId)
             ->latest()
             ->get();
 

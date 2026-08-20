@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\ProjectStatus;
+use App\Models\Invitation;
 
 class Project extends Model
 {
@@ -30,6 +31,10 @@ class Project extends Model
             Organization::class
         );
     }
+    public function invitations()
+{
+    return $this->hasMany(Invitation::class);
+}
 
     public function users()
     {

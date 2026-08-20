@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Organization;
 use App\Models\User;
+use App\Models\Project;
 
 class Invitation extends Model
 {
-    //this field save data
     protected $fillable = [
-        'organization_id',
+        'project_id',
         'invited_by',
         'email',
         'role',
@@ -25,13 +25,25 @@ class Invitation extends Model
         'expires_at' => 'datetime',
     ];
 
-    public function organization()
+    public function project()
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(Project::class);
     }
 
     public function inviter()
     {
         return $this->belongsTo(User::class, 'invited_by');
+    }
+
+    public function organization()
+    {
+        return $this->hasOneThrough(
+            Organization::class,
+            Project::class,
+            'id',
+            'id',
+            'project_id',
+            'organization_id'
+        );
     }
 }

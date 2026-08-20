@@ -12,44 +12,22 @@
 
         <div class="card-body">
 
+            <div class="mb-3">
+                <strong>Project:</strong>
+                {{ $project->title }}
+            </div>
+
+            <div class="mb-3">
+                <strong>Organization:</strong>
+                {{ $project->organization->name }}
+            </div>
+
             <form method="POST"
-                  action="{{ route('invitations.store') }}">
+                  action="{{ route('projects.invitations.store', $project->id) }}">
 
                 @csrf
 
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Organization
-                    </label>
-
-                    <select name="organization_id"
-                            class="form-select"
-                            required>
-
-                        <option value="">
-                            Select Organization
-                        </option>
-
-                        @foreach($organizations as $organization)
-
-                            <option value="{{ $organization->id }}">
-                                {{ $organization->name }}
-                            </option>
-
-                        @endforeach
-
-                    </select>
-
-                    @error('organization_id')
-                        <div class="text-danger">
-                            {{ $message }}
-                        </div>
-                    @enderror
-
-                </div>
-
-
+                {{-- Email --}}
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -72,6 +50,7 @@
                 </div>
 
 
+                {{-- Role --}}
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -86,13 +65,23 @@
                             Select Role
                         </option>
 
-                        <option value="manager">
-                            Manager
-                        </option>
+                        @if(session('user_role') === 'admin')
 
-                        <option value="employee">
-                            Employee
-                        </option>
+                            <option value="manager">
+                                Manager
+                            </option>
+
+                            <option value="employee">
+                                Employee
+                            </option>
+
+                        @elseif(session('user_role') === 'manager')
+
+                            <option value="employee">
+                                Employee
+                            </option>
+
+                        @endif
 
                     </select>
 
@@ -105,6 +94,7 @@
                 </div>
 
 
+                {{-- Buttons --}}
                 <div class="d-flex gap-2">
 
                     <button type="submit"
@@ -112,9 +102,9 @@
                         Send Invitation
                     </button>
 
-                    <a href="{{ route('invitations.index') }}"
+                    <a href="{{ route('projects.users.index', $project->id) }}"
                        class="btn btn-secondary">
-                        Cancel
+                        Back
                     </a>
 
                 </div>

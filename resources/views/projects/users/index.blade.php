@@ -4,10 +4,10 @@
 
 <div class="container mt-4">
 
-    {{-- Page Header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
+
             <h2>Manage Users</h2>
 
             <h5 class="text-primary mb-1">
@@ -17,17 +17,19 @@
             <span class="text-muted">
                 Organization: {{ $organization->name }}
             </span>
+
         </div>
 
-        <a href="{{ route('projects.invitations.create', $project->id) }}"
-           class="btn btn-primary">
+        <a
+            href="{{ route('projects.invitations.create', $project->id) }}"
+            class="btn btn-primary"
+        >
             Invite User
         </a>
 
     </div>
 
 
-    {{-- Success Message --}}
     @if(session('success'))
 
         <div
@@ -48,7 +50,6 @@
     @endif
 
 
-    {{-- Error Message --}}
     @if(session('error'))
 
         <div class="alert alert-danger">
@@ -60,7 +61,6 @@
     @endif
 
 
-    {{-- Project Users --}}
     <div class="card shadow">
 
         <div class="card-header">
@@ -74,6 +74,13 @@
 
         <div class="card-body">
 
+            <p class="text-muted">
+                Users who have accepted an invitation in this
+                organization are automatically available in all
+                projects of this organization.
+            </p>
+
+
             <div class="table-responsive">
 
                 <table class="table table-bordered table-hover align-middle">
@@ -83,18 +90,11 @@
                         <tr>
 
                             <th>ID</th>
-
                             <th>Name</th>
-
                             <th>Email</th>
-
                             <th>Role</th>
-
                             <th>Organization</th>
-
-                            <th width="200">
-                                Action
-                            </th>
+                            <th>Status</th>
 
                         </tr>
 
@@ -104,32 +104,32 @@
                     <tbody>
 
                         {{-- ========================= --}}
-                        {{-- ACCEPTED / PROJECT USERS --}}
+                        {{-- ACCEPTED ORGANIZATION USERS --}}
                         {{-- ========================= --}}
 
                         @forelse($users as $user)
 
                             <tr>
 
-                                {{-- ID --}}
                                 <td>
                                     {{ $user->id }}
                                 </td>
 
 
-                                {{-- Name --}}
                                 <td>
-                                    {{ $user->name }}
+
+                                    <strong>
+                                        {{ $user->name }}
+                                    </strong>
+
                                 </td>
 
 
-                                {{-- Email --}}
                                 <td>
                                     {{ $user->email }}
                                 </td>
 
 
-                                {{-- Role --}}
                                 <td class="text-center">
 
                                     @php
@@ -140,69 +140,46 @@
 
                                         $badge = match($role) {
 
-                                            'admin' => 'danger',
+                                            'admin' =>
+                                                'danger',
 
-                                            'manager' => 'warning text-dark',
+                                            'manager' =>
+                                                'warning text-dark',
 
-                                            'employee' => 'primary',
+                                            'employee' =>
+                                                'primary',
 
-                                            default => 'secondary',
+                                            default =>
+                                                'secondary',
 
                                         };
 
                                     @endphp
 
+
                                     <span class="badge bg-{{ $badge }}">
+
                                         {{ ucfirst($role) }}
+
                                     </span>
 
                                 </td>
 
 
-                                {{-- Organization --}}
                                 <td>
+
                                     {{ $organization->name }}
+
                                 </td>
 
 
-                                {{-- Action --}}
                                 <td class="text-center">
 
-                                    <div class="d-flex justify-content-center gap-1">
+                                    <span class="badge bg-success">
 
-                                        {{-- Accepted --}}
-                                        <span class="badge bg-success align-self-center">
-                                            Accepted
-                                        </span>
+                                        Available
 
-
-                                        {{-- Remove --}}
-                                        <form
-                                            action="{{ route(
-                                                'projects.users.destroy',
-                                                [
-                                                    'project' => $project->id,
-                                                    'user' => $user->id
-                                                ]
-                                            ) }}"
-                                            method="POST"
-                                        >
-
-                                            @csrf
-
-                                            @method('DELETE')
-
-                                            <button
-                                                type="submit"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="return confirm('Remove this user from the project?')"
-                                            >
-                                                Remove
-                                            </button>
-
-                                        </form>
-
-                                    </div>
+                                    </span>
 
                                 </td>
 
@@ -210,7 +187,19 @@
 
                         @empty
 
-                            {{-- No accepted users --}}
+                            <tr>
+
+                                <td
+                                    colspan="6"
+                                    class="text-center text-danger py-4"
+                                >
+
+                                    No accepted users found.
+
+                                </td>
+
+                            </tr>
+
                         @endforelse
 
 
@@ -224,13 +213,11 @@
 
                                 <tr class="table-warning">
 
-                                    {{-- ID --}}
                                     <td>
                                         -
                                     </td>
 
 
-                                    {{-- Name --}}
                                     <td>
 
                                         <span class="text-muted">
@@ -240,7 +227,6 @@
                                     </td>
 
 
-                                    {{-- Email --}}
                                     <td>
 
                                         {{ $invitation->email }}
@@ -248,19 +234,22 @@
                                     </td>
 
 
-                                    {{-- Role --}}
                                     <td class="text-center">
 
                                         @if($invitation->role === 'manager')
 
                                             <span class="badge bg-warning text-dark">
+
                                                 Manager
+
                                             </span>
 
                                         @else
 
                                             <span class="badge bg-primary">
+
                                                 Employee
+
                                             </span>
 
                                         @endif
@@ -268,7 +257,6 @@
                                     </td>
 
 
-                                    {{-- Organization --}}
                                     <td>
 
                                         {{ $organization->name }}
@@ -276,48 +264,13 @@
                                     </td>
 
 
-                                    {{-- Action --}}
                                     <td class="text-center">
 
-                                        <div class="d-flex justify-content-center gap-2">
+                                        <span class="badge bg-warning text-dark">
 
-                                            {{-- Pending --}}
-                                            <span class="badge bg-warning text-dark align-self-center">
-                                                Pending
-                                            </span>
+                                            Invitation Pending
 
-
-                                            {{-- Cancel Invitation --}}
-                                            @if(Route::has('projects.invitations.destroy'))
-
-                                                <form
-                                                    action="{{ route(
-                                                        'projects.invitations.destroy',
-                                                        [
-                                                            'project' => $project->id,
-                                                            'invitation' => $invitation->id
-                                                        ]
-                                                    ) }}"
-                                                    method="POST"
-                                                >
-
-                                                    @csrf
-
-                                                    @method('DELETE')
-
-                                                    <button
-                                                        type="submit"
-                                                        class="btn btn-outline-danger btn-sm"
-                                                        onclick="return confirm('Cancel this invitation?')"
-                                                    >
-                                                        Cancel
-                                                    </button>
-
-                                                </form>
-
-                                            @endif
-
-                                        </div>
+                                        </span>
 
                                     </td>
 
@@ -327,28 +280,6 @@
 
                         @endforeach
 
-
-                        {{-- ========================= --}}
-                        {{-- NOTHING FOUND --}}
-                        {{-- ========================= --}}
-
-                        @if($users->isEmpty() && ($invitations ?? collect())->where('status', 'pending')->isEmpty())
-
-                            <tr>
-
-                                <td
-                                    colspan="6"
-                                    class="text-center text-danger py-4"
-                                >
-
-                                    No Users or Pending Invitations Found
-
-                                </td>
-
-                            </tr>
-
-                        @endif
-
                     </tbody>
 
                 </table>
@@ -356,12 +287,13 @@
             </div>
 
 
-            {{-- Back Button --}}
             <a
                 href="{{ route('projects.index') }}"
                 class="btn btn-secondary"
             >
+
                 Back to Projects
+
             </a>
 
         </div>
@@ -371,7 +303,6 @@
 </div>
 
 
-{{-- Auto Hide Success Alert --}}
 <script>
 
     setTimeout(function () {

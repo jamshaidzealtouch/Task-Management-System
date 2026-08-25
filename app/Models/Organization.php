@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Project;
 use App\Models\Invitation;
 
 class Organization extends Model
@@ -18,21 +20,33 @@ class Organization extends Model
 
     public function owner()
     {
-        return $this->belongsTo(User::class, 'owner_id');
+        return $this->belongsTo(
+            User::class,
+            'owner_id'
+        );
     }
-    // user relation 
+
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(
+            User::class,
+            'organization_user'
+        );
     }
-    //project relation 
+
     public function projects()
     {
-        return $this->hasMany(Project::class);
+        return $this->hasMany(
+            Project::class,
+            'organization_id'
+        );
     }
-    //invitation relation
+
     public function invitations()
-{
-    return $this->hasMany(Invitation::class);
-}
+    {
+        return $this->hasMany(
+            Invitation::class,
+            'organization_id'
+        );
+    }
 }

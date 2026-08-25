@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\ProjectStatus;
+use App\Models\Organization;
+use App\Models\User;
+use App\Models\Task;
 use App\Models\Invitation;
 
 class Project extends Model
@@ -15,9 +18,7 @@ class Project extends Model
         'end_date',
         'status',
         'organization_id',
-       
     ];
-
 
     protected $casts = [
         'start_date' => 'date',
@@ -28,23 +29,32 @@ class Project extends Model
     public function organization()
     {
         return $this->belongsTo(
-            Organization::class
+            Organization::class,
+            'organization_id'
         );
     }
-    public function invitations()
-{
-    return $this->hasMany(Invitation::class);
-}
 
     public function users()
     {
-        return $this->belongsToMany(User::class)
-                    ->withPivot('role');
+        return $this->belongsToMany(
+            User::class,
+            'project_user'
+        )->withPivot('role');
     }
+
     public function tasks()
     {
         return $this->hasMany(
-            Task::class
+            Task::class,
+            'project_id'
+        );
+    }
+
+    public function invitations()
+    {
+        return $this->hasMany(
+            Invitation::class,
+            'project_id'
         );
     }
 }

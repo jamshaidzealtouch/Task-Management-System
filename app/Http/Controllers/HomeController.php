@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Organization;
+use App\Models\Project;
 use App\Models\Task;
-
 
 class HomeController extends Controller
 {
@@ -18,18 +18,23 @@ class HomeController extends Controller
 
         $organization = null;
         $admin = null;
+        $projects = collect();
         $tasks = collect();
 
         if ($userRole === 'employee') {
-            $organization = Organization::find(
-                $user->organization_id
-            );
-//organization
+
+            $organization = Organization::find($user->organization_id);
+
             if ($organization) {
 
-                $admin = User::find(
-                    $organization->owner_id
-                );
+                $admin = User::find($organization->owner_id);
+
+                $projects = Project::where(
+                    'organization_id',
+                    $user->organization_id
+                )
+                    ->latest()
+                    ->get();
             }
 
             $tasks = Task::with([
@@ -39,31 +44,40 @@ class HomeController extends Controller
                 ->latest()
                 ->get();
         }
-//manager
+
         elseif ($userRole === 'manager') {
-            $organization = Organization::whereHas(
-                'users',
-                function ($query) use ($userId) {
-                    $query->where(
-                        'users.id',
-                        $userId
-                    );
-                }
-            )->first();
+
+            $organization = Organization::find($user->organization_id);
 
             if ($organization) {
-                $admin = User::find(
-                    $organization->owner_id
-                );
+
+                $admin = User::find($organization->owner_id);
+
+                $projects = Project::where(
+                    'organization_id',
+                    $user->organization_id
+                )
+                    ->latest()
+                    ->get();
             }
         }
 
-        //admin
         elseif ($userRole === 'admin') {
+
             $organization = Organization::where(
                 'owner_id',
                 $userId
             )->first();
+
+            if ($organization) {
+
+                $projects = Project::where(
+                    'organization_id',
+                    $organization->id
+                )
+                    ->latest()
+                    ->get();
+            }
         }
 
         return view(
@@ -72,6 +86,7 @@ class HomeController extends Controller
                 'user',
                 'organization',
                 'admin',
+                'projects',
                 'tasks'
             )
         );

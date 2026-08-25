@@ -57,6 +57,114 @@
 
     </div>
 
+
+    {{-- ===================================================== --}}
+    {{-- ADMIN ORGANIZATION PROJECTS --}}
+    {{-- ===================================================== --}}
+
+    @if(isset($projects) && $projects->count() > 0)
+
+        <div class="card shadow mb-4">
+
+            <div class="card-header bg-primary text-white">
+
+                <h4 class="mb-0">
+                    Organization Projects
+                </h4>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover align-middle">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th>
+                                    Project
+                                </th>
+
+                                <th>
+                                    Description
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach($projects as $project)
+
+                                <tr>
+
+                                    <td>
+                                        <strong>
+                                            {{ $project->title }}
+                                        </strong>
+                                    </td>
+
+                                    <td>
+
+                                        {{ $project->description }}
+
+                                    </td>
+
+                                    <td>
+
+                                        @php
+                                            $status = $project->status;
+
+                                            if ($status instanceof \BackedEnum) {
+                                                $status = $status->value;
+                                            }
+                                        @endphp
+
+                                        <span class="badge bg-primary">
+                                            {{ ucwords(str_replace('_', ' ', $status)) }}
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <a
+                                            href="{{ route('projects.show', $project->id) }}"
+                                            class="btn btn-info btn-sm"
+                                        >
+                                            View
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    @endif
+
 @endif
 
 
@@ -91,6 +199,7 @@
 
             </ul>
 
+
             {{-- Organization Information --}}
 
             @if(isset($organization) && $organization)
@@ -114,6 +223,112 @@
         </div>
 
     </div>
+
+
+    {{-- ===================================================== --}}
+    {{-- MANAGER ORGANIZATION PROJECTS --}}
+    {{-- ===================================================== --}}
+
+    @if(isset($projects) && $projects->count() > 0)
+
+        <div class="card shadow mb-4">
+
+            <div class="card-header bg-success text-white">
+
+                <h4 class="mb-0">
+                    Organization Projects
+                </h4>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover align-middle">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th>
+                                    Project
+                                </th>
+
+                                <th>
+                                    Description
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach($projects as $project)
+
+                                <tr>
+
+                                    <td>
+                                        <strong>
+                                            {{ $project->title }}
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        {{ $project->description }}
+                                    </td>
+
+                                    <td>
+
+                                        @php
+                                            $status = $project->status;
+
+                                            if ($status instanceof \BackedEnum) {
+                                                $status = $status->value;
+                                            }
+                                        @endphp
+
+                                        <span class="badge bg-primary">
+                                            {{ ucwords(str_replace('_', ' ', $status)) }}
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <a
+                                            href="{{ route('projects.show', $project->id) }}"
+                                            class="btn btn-info btn-sm"
+                                        >
+                                            View
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    @endif
 
 @endif
 
@@ -215,6 +430,143 @@
 
 
     {{-- ===================================================== --}}
+    {{-- EMPLOYEE ORGANIZATION PROJECTS --}}
+    {{-- ===================================================== --}}
+
+    <div class="card shadow mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4 class="mb-0">
+                Organization Projects
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            @if(isset($projects) && $projects->count() > 0)
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover align-middle">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th>
+                                    Project
+                                </th>
+
+                                <th>
+                                    Description
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach($projects as $project)
+
+                                <tr>
+
+                                    <td>
+
+                                        <strong>
+                                            {{ $project->title }}
+                                        </strong>
+
+                                    </td>
+
+                                    <td>
+
+                                        {{ $project->description }}
+
+                                    </td>
+
+                                    <td>
+
+                                        @php
+
+                                            $status = $project->status;
+
+                                            if ($status instanceof \BackedEnum) {
+                                                $status = $status->value;
+                                            }
+
+                                        @endphp
+
+                                        <span class="badge bg-primary">
+
+                                            {{ ucwords(
+                                                str_replace(
+                                                    '_',
+                                                    ' ',
+                                                    $status
+                                                )
+                                            ) }}
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <a
+                                            href="{{ route(
+                                                'projects.show',
+                                                $project->id
+                                            ) }}"
+                                            class="btn btn-info btn-sm"
+                                        >
+                                            View
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            @else
+
+                <div class="alert alert-info mb-0">
+
+                    <strong>
+                        No projects found.
+                    </strong>
+
+                    <br>
+
+                    There are currently no projects in your organization.
+
+                </div>
+
+            @endif
+
+        </div>
+
+    </div>
+
+
+    {{-- ===================================================== --}}
     {{-- MY ASSIGNED TASKS --}}
     {{-- ===================================================== --}}
 
@@ -229,11 +581,11 @@
                 </h4>
 
                 <a
-    href="{{ route('my.tasks') }}"
-    class="btn btn-light btn-sm"
->
-    View All Tasks
-</a>
+                    href="{{ route('my.tasks') }}"
+                    class="btn btn-light btn-sm"
+                >
+                    View All Tasks
+                </a>
 
             </div>
 

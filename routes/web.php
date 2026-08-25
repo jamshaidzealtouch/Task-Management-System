@@ -11,6 +11,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProjectUserController;
 use App\Http\Controllers\InvitationController;
 
+// Public Routes
 Route::get('/', [LoginController::class, 'index']);
 
 Route::get('/login', [LoginController::class, 'index'])
@@ -25,109 +26,81 @@ Route::get('/register', [RegisterController::class, 'index'])
 Route::post('/register', [RegisterController::class, 'store'])
     ->name('register.store');
 
-Route::get(
-    '/invitations/{token}/accept',
-    [InvitationController::class, 'accept']
-)->name('invitations.accept');
+// Invitation Routes
+Route::get('/invitations/{token}/accept', [InvitationController::class, 'accept'])
+    ->name('invitations.accept');
 
-Route::get(
-    '/invitations/register/{token}',
-    [InvitationController::class, 'showRegister']
-)->name('invitations.register');
+Route::get('/invitations/register/{token}', [InvitationController::class, 'showRegister'])
+    ->name('invitations.register');
 
-Route::post(
-    '/invitations/register/{token}',
-    [InvitationController::class, 'completeRegistration']
-)->name('invitations.register.complete');
+Route::post('/invitations/register/{token}', [InvitationController::class, 'completeRegistration'])
+    ->name('invitations.register.complete');
 
+// Authenticated Routes
 Route::middleware('auth.custom')->group(function () {
 
+    // Authentication
     Route::post('/logout', [LoginController::class, 'logout'])
         ->name('logout');
 
+    // Dashboard
     Route::get('/home', [HomeController::class, 'home'])
         ->name('home');
 
     Route::get('/about', [HomeController::class, 'about'])
         ->name('about');
 
-    Route::resource(
-        'organizations',
-        OrganizationController::class
-    );
+    // Organizations
+    Route::resource('organizations', OrganizationController::class);
 
-    Route::get(
-        'organizations/{organization}/projects',
-        [ProjectController::class, 'organizationProjects']
-    )->name('organizations.projects.index');
+    // Organization Projects
+    Route::get('organizations/{organization}/projects', [ProjectController::class, 'organizationProjects'])
+        ->name('organizations.projects.index');
 
-    Route::get(
-        'organizations/{organization}/projects/create',
-        [ProjectController::class, 'organizationCreate']
-    )->name('organizations.projects.create');
+    Route::get('organizations/{organization}/projects/create', [ProjectController::class, 'organizationCreate'])
+        ->name('organizations.projects.create');
 
-    Route::post(
-        'organizations/{organization}/projects',
-        [ProjectController::class, 'organizationStore']
-    )->name('organizations.projects.store');
+    Route::post('organizations/{organization}/projects', [ProjectController::class, 'organizationStore'])
+        ->name('organizations.projects.store');
 
-    Route::resource(
-        'projects',
-        ProjectController::class
-    );
+    // Projects
+    Route::resource('projects', ProjectController::class);
 
-    Route::get(
-        'projects/{project}/users',
-        [ProjectUserController::class, 'index']
-    )->name('projects.users.index');
+    // Project Users / Members
+    Route::get('projects/{project}/users', [ProjectUserController::class, 'index'])
+        ->name('projects.users.index');
 
-    Route::get(
-        'projects/{project}/users/create',
-        [ProjectUserController::class, 'create']
-    )->name('projects.users.create');
+    Route::get('projects/{project}/users/create', [ProjectUserController::class, 'create'])
+        ->name('projects.users.create');
 
-    Route::post(
-        'projects/{project}/users',
-        [ProjectUserController::class, 'store']
-    )->name('projects.users.store');
+    Route::post('projects/{project}/users', [ProjectUserController::class, 'store'])
+        ->name('projects.users.store');
 
-    Route::delete(
-        'projects/{project}/users/{user}',
-        [ProjectUserController::class, 'destroy']
-    )->name('projects.users.destroy');
+    Route::delete('projects/{project}/users/{user}', [ProjectUserController::class, 'destroy'])
+        ->name('projects.users.destroy');
 
-    Route::get(
-        'projects/{project}/invitations/create',
-        [InvitationController::class, 'create']
-    )->name('projects.invitations.create');
+    // Project Invitations
+    Route::get('projects/{project}/invitations/create', [InvitationController::class, 'create'])
+        ->name('projects.invitations.create');
 
-    Route::post(
-        'projects/{project}/invitations',
-        [InvitationController::class, 'store']
-    )->name('projects.invitations.store');
+    Route::post('projects/{project}/invitations', [InvitationController::class, 'store'])
+        ->name('projects.invitations.store');
 
-    Route::resource(
-        'projects.tasks',
-        TaskController::class
-    )->scoped();
+    // Project Tasks
+    Route::resource('projects.tasks', TaskController::class)->scoped();
 
-    Route::get(
-        '/my-tasks',
-        [TaskController::class, 'myTasks']
-    )->name('my.tasks');
+    // Employee My Tasks
+    Route::get('/my-tasks', [TaskController::class, 'myTasks'])
+        ->name('my.tasks');
 
-    Route::patch(
-        '/my-tasks/{task}/status',
-        [TaskController::class, 'updateMyTaskStatus']
-    )->name('my.tasks.status');
+    Route::patch('/my-tasks/{task}/status', [TaskController::class, 'updateMyTaskStatus'])
+        ->name('my.tasks.status');
 
-    Route::get(
-        'projects/{project}/tasks/trash',
-        [TaskController::class, 'trash']
-    )->name('projects.tasks.trash');
+    // Task Trash
+    Route::get('projects/{project}/tasks/trash', [TaskController::class, 'trash'])
+        ->name('projects.tasks.trash');
 
-    Route::patch(
-        'projects/{project}/tasks/{task}/restore',
-        [TaskController::class, 'restore']
-    )->name('projects.tasks.restore');
+    // Restore Task
+    Route::patch('projects/{project}/tasks/{task}/restore', [TaskController::class, 'restore'])
+        ->name('projects.tasks.restore');
 });

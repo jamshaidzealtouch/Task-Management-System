@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+use App\Enums\UserRole;
 use App\Models\Project;
 use App\Models\Organization;
 use App\Models\Task;
-use App\Enums\UserRole;
 
 class User extends Authenticatable
 {
@@ -22,28 +22,38 @@ class User extends Authenticatable
         'role',
         'organization_id',
     ];
+
     protected $hidden = [
         'password',
         'remember_token',
     ];
+
     public function projects()
     {
-        return $this->belongsToMany(Project::class)
-                    ->withPivot('role');
+        return $this->belongsToMany(
+            Project::class,
+            'project_user'
+        )
+            ->withPivot('role')
+            ->withTimestamps();
     }
-    public function organizations()
+
+    public function ownedOrganizations()
     {
         return $this->hasMany(
             Organization::class,
             'owner_id'
         );
     }
-    public function organization()
+
+    public function organizations()
     {
-        return $this->belongsTo(
-            Organization::class
-        );
+        return $this->belongsToMany(
+            Organization::class,
+            'organization_user'
+        )->withTimestamps();
     }
+
     public function assignedTasks()
     {
         return $this->hasMany(
@@ -51,6 +61,7 @@ class User extends Authenticatable
             'assignee_id'
         );
     }
+
     public function createdTasks()
     {
         return $this->hasMany(
@@ -58,6 +69,7 @@ class User extends Authenticatable
             'created_by'
         );
     }
+
     protected function casts(): array
     {
         return [

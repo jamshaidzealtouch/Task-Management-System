@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('invitations', function (Blueprint $table) {
-            $table->timestamp('accepted_at')->nullable()->after('status');
+        Schema::table('project_user', function (Blueprint $table) {
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::table('invitations', function (Blueprint $table) {
-            $table->dropColumn('accepted_at');
+        Schema::table('project_user', function (Blueprint $table) {
+            $table->dropTimestamps();
         });
     }
 };

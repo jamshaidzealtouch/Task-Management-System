@@ -19,6 +19,8 @@ return new class extends Migration
                 ->constrained('users')
                 ->onDelete('cascade');
 
+               
+
             $table->string('email');
 
             $table->enum('role', [

@@ -211,7 +211,7 @@
                             @enderror
 
                             <small class="text-muted">
-                                Password must be at least 8 characters.
+                                Password must be at least 4 characters.
                             </small>
 
                         </div>

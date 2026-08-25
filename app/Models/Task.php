@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\TaskStatus;
 use App\Enums\TaskPriority;
-use App\Models\User;
-use App\Models\Project;
 
 class Task extends Model
 {
@@ -27,11 +25,14 @@ class Task extends Model
     protected $casts = [
         'status' => TaskStatus::class,
         'priority' => TaskPriority::class,
+        'due_date' => 'date',
     ];
 
     public function project()
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(
+            Project::class
+        );
     }
 
     public function creator()
@@ -49,12 +50,4 @@ class Task extends Model
             'assignee_id'
         );
     }
-    public function projects()
-{
-    return $this->belongsToMany(
-        Project::class,
-        'project_user'
-    )->withPivot('role')
-     ->withTimestamps();
-}
 }

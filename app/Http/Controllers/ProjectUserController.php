@@ -8,15 +8,10 @@ use App\Models\Invitation;
 
 class ProjectUserController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Show Project Users
-    |--------------------------------------------------------------------------
-    */
-
     public function index(Project $project)
     {
         $userRole = session('user_role');
+        $userId = session('user_id');
 
         if (!in_array($userRole, ['admin', 'manager'])) {
             abort(403);
@@ -28,30 +23,16 @@ class ProjectUserController extends Controller
             abort(404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Admin Access
-        |--------------------------------------------------------------------------
-        */
-
         if ($userRole === 'admin') {
 
-            if ($organization->owner_id != session('user_id')) {
+            if ($organization->owner_id != $userId) {
                 abort(404);
             }
-        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Manager Access
-        |--------------------------------------------------------------------------
-        */
+        } else {
 
-        else {
-
-            $belongsToOrganization = $organization
-                ->users()
-                ->where('users.id', session('user_id'))
+            $belongsToOrganization = User::where('id', $userId)
+                ->where('organization_id', $organization->id)
                 ->exists();
 
             if (!$belongsToOrganization) {
@@ -59,32 +40,23 @@ class ProjectUserController extends Controller
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Get Accepted / Project Users
-        |--------------------------------------------------------------------------
-        */
-
-        $users = $project
-            ->users()
+        $users = User::where(
+            'organization_id',
+            $organization->id
+        )
+            ->orderBy('name')
             ->get();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Get Pending Invitations
-        |--------------------------------------------------------------------------
-        */
-
-        $invitations = Invitation::where('project_id', $project->id)
-            ->where('status', 'pending')
+        $invitations = Invitation::where(
+            'project_id',
+            $project->id
+        )
+            ->where(
+                'status',
+                'pending'
+            )
             ->orderByDesc('created_at')
             ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Return View
-        |--------------------------------------------------------------------------
-        */
 
         return view(
             'projects.users.index',
@@ -97,18 +69,12 @@ class ProjectUserController extends Controller
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Remove User From Project
-    |--------------------------------------------------------------------------
-    */
-
     public function destroy(
         Project $project,
         User $user
     ) {
         $userRole = session('user_role');
+        $userId = session('user_id');
 
         if (!in_array($userRole, ['admin', 'manager'])) {
             abort(403);
@@ -120,30 +86,16 @@ class ProjectUserController extends Controller
             abort(404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Admin Access
-        |--------------------------------------------------------------------------
-        */
-
         if ($userRole === 'admin') {
 
-            if ($organization->owner_id != session('user_id')) {
+            if ($organization->owner_id != $userId) {
                 abort(404);
             }
-        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Manager Access
-        |--------------------------------------------------------------------------
-        */
+        } else {
 
-        else {
-
-            $belongsToOrganization = $organization
-                ->users()
-                ->where('users.id', session('user_id'))
+            $belongsToOrganization = User::where('id', $userId)
+                ->where('organization_id', $organization->id)
                 ->exists();
 
             if (!$belongsToOrganization) {
@@ -151,26 +103,12 @@ class ProjectUserController extends Controller
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Check User Is Assigned To Project
-        |--------------------------------------------------------------------------
-        */
-
-        $assigned = $project
-            ->users()
-            ->where('users.id', $user->id)
-            ->exists();
-
-        if (!$assigned) {
+        if (
+            !$user->organization_id ||
+            $user->organization_id != $organization->id
+        ) {
             abort(404);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Manager Can Only Remove Employee
-        |--------------------------------------------------------------------------
-        */
 
         $userRoleValue = $user->role instanceof \App\Enums\UserRole
             ? $user->role->value
@@ -183,16 +121,6 @@ class ProjectUserController extends Controller
             abort(403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Remove User
-        |--------------------------------------------------------------------------
-        */
-
-        $project
-            ->users()
-            ->detach($user->id);
-
         return redirect()
             ->route(
                 'projects.users.index',
@@ -200,7 +128,7 @@ class ProjectUserController extends Controller
             )
             ->with(
                 'success',
-                'User removed from project successfully.'
+                'Organization users are automatically available in this project.'
             );
     }
 }

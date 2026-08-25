@@ -22,14 +22,21 @@ class InvitationController extends Controller
             abort(403);
         }
 
-        if ($userRole === 'admin') {
-            if ($project->organization->owner_id != $userId) {
-                abort(403);
-            }
+        $organization = $project->organization;
+
+        if (!$organization) {
+            abort(404);
         }
 
-        if ($userRole === 'manager') {
-            $belongsToOrganization = $project->organization
+        if ($userRole === 'admin') {
+
+            if ($organization->owner_id != $userId) {
+                abort(403);
+            }
+
+        } elseif ($userRole === 'manager') {
+
+            $belongsToOrganization = $organization
                 ->users()
                 ->where('users.id', $userId)
                 ->exists();
@@ -39,7 +46,10 @@ class InvitationController extends Controller
             }
         }
 
-        return view('invitations.create', compact('project'));
+        return view(
+            'invitations.create',
+            compact('project')
+        );
     }
 
     public function store(Request $request, Project $project)
@@ -51,14 +61,21 @@ class InvitationController extends Controller
             abort(403);
         }
 
-        if ($userRole === 'admin') {
-            if ($project->organization->owner_id != $userId) {
-                abort(403);
-            }
+        $organization = $project->organization;
+
+        if (!$organization) {
+            abort(404);
         }
 
-        if ($userRole === 'manager') {
-            $belongsToOrganization = $project->organization
+        if ($userRole === 'admin') {
+
+            if ($organization->owner_id != $userId) {
+                abort(403);
+            }
+
+        } elseif ($userRole === 'manager') {
+
+            $belongsToOrganization = $organization
                 ->users()
                 ->where('users.id', $userId)
                 ->exists();
@@ -72,7 +89,7 @@ class InvitationController extends Controller
             'email' => [
                 'required',
                 'email',
-                'max:255',
+                'max:200',
             ],
             'role' => [
                 'required',
@@ -93,15 +110,24 @@ class InvitationController extends Controller
         )->first();
 
         if ($existingUser) {
-            $alreadyMember = $project->users()
-                ->where('users.id', $existingUser->id)
-                ->exists();
 
-            if ($alreadyMember) {
+            if (
+                $existingUser->organization_id ==
+                $organization->id
+            ) {
                 return back()
                     ->withErrors([
                         'email' =>
-                            'This user is already a member of this project.'
+                            'This user is already a member of this organization.'
+                    ])
+                    ->withInput();
+            }
+
+            if ($existingUser->organization_id !== null) {
+                return back()
+                    ->withErrors([
+                        'email' =>
+                            'This user already belongs to another organization.'
                     ])
                     ->withInput();
             }
@@ -119,7 +145,7 @@ class InvitationController extends Controller
             return back()
                 ->withErrors([
                     'email' =>
-                        'An invitation has already been sent to this email.'
+                        'An invitation has already been sent to this user for this project.'
                 ])
                 ->withInput();
         }
@@ -131,6 +157,7 @@ class InvitationController extends Controller
         $invitation = Invitation::create([
             'project_id' => $project->id,
             'invited_by' => $userId,
+            'user_id' => $existingUser?->id,
             'email' => $data['email'],
             'role' => $data['role'],
             'token' => $token,
@@ -212,16 +239,21 @@ class InvitationController extends Controller
             );
         }
 
-        $this->acceptInvitationForUser(
+        DB::transaction(function () use (
             $invitation,
             $user
-        );
+        ) {
+            $this->acceptInvitationForUser(
+                $invitation,
+                $user
+            );
+        });
 
         return redirect()
             ->route('login')
             ->with(
                 'success',
-                'Invitation accepted successfully. You can now login and access the project.'
+                'Invitation accepted successfully. You can now login and access all organization projects.'
             );
     }
 
@@ -346,7 +378,7 @@ class InvitationController extends Controller
             'password' => [
                 'required',
                 'string',
-                'min:8',
+                'min:4',
                 'confirmed',
             ],
         ]);
@@ -359,10 +391,15 @@ class InvitationController extends Controller
         )->first();
 
         if ($existingUser) {
-            $this->acceptInvitationForUser(
+            DB::transaction(function () use (
                 $invitation,
                 $existingUser
-            );
+            ) {
+                $this->acceptInvitationForUser(
+                    $invitation,
+                    $existingUser
+                );
+            });
 
             return redirect()
                 ->route('login')
@@ -383,6 +420,7 @@ class InvitationController extends Controller
                 'password' => Hash::make(
                     $data['password']
                 ),
+                'role' => $invitation->role,
             ]);
 
             $this->acceptInvitationForUser(
@@ -403,26 +441,57 @@ class InvitationController extends Controller
         Invitation $invitation,
         User $user
     ) {
-        $alreadyMember = $invitation->project
-            ->users()
-            ->where(
-                'users.id',
-                $user->id
-            )
-            ->exists();
+        $organization = $invitation
+            ->project
+            ->organization;
 
-        if (!$alreadyMember) {
-            $invitation->project
-                ->users()
-                ->attach(
-                    $user->id,
-                    [
-                        'role' => $invitation->role,
-                    ]
-                );
+        if (!$organization) {
+            throw new \Exception(
+                'Organization not found for this invitation.'
+            );
         }
 
+        $owner = $organization->owner;
+
+        if (!$owner) {
+            throw new \Exception(
+                'Organization owner not found.'
+            );
+        }
+
+        $organizations = $owner->ownedOrganizations;
+
+        foreach ($organizations as $org) {
+
+            $org->users()->syncWithoutDetaching([
+                $user->id
+            ]);
+
+            $projects = $org->projects;
+
+            foreach ($projects as $project) {
+
+                $alreadyAssigned = $project
+                    ->users()
+                    ->where('users.id', $user->id)
+                    ->exists();
+
+                if (!$alreadyAssigned) {
+                    $project->users()->attach(
+                        $user->id,
+                        [
+                            'role' => $invitation->role,
+                        ]
+                    );
+                }
+            }
+        }
+
+        $user->organization_id = $organization->id;
+        $user->save();
+
         $invitation->update([
+            'user_id' => $user->id,
             'status' => 'accepted',
             'accepted_at' => now(),
         ]);

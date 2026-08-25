@@ -100,6 +100,16 @@ Route::middleware('auth.custom')->group(function () {
     Route::get('projects/{project}/tasks/trash', [TaskController::class, 'trash'])
         ->name('projects.tasks.trash');
 
+        Route::post(
+            '/tasks/{task}/accept',
+            [TaskController::class, 'acceptTask']
+        )->name('tasks.accept');
+        
+        Route::post(
+            '/tasks/{task}/reject',
+            [TaskController::class, 'rejectTask']
+        )->name('tasks.reject');
+
     // Restore Task
     Route::patch('projects/{project}/tasks/{task}/restore', [TaskController::class, 'restore'])
         ->name('projects.tasks.restore');

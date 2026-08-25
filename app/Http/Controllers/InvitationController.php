@@ -13,6 +13,7 @@ use App\Mail\InvitationMail;
 
 class InvitationController extends Controller
 {
+    // Create invitation form
     public function create(Project $project)
     {
         $userId = session('user_id');
@@ -52,6 +53,7 @@ class InvitationController extends Controller
         );
     }
 
+    // Store invitation
     public function store(Request $request, Project $project)
     {
         $userId = session('user_id');
@@ -133,6 +135,7 @@ class InvitationController extends Controller
             }
         }
 
+        // Check existing pending invitation
         $existingInvitation = Invitation::where(
             'project_id',
             $project->id
@@ -150,10 +153,12 @@ class InvitationController extends Controller
                 ->withInput();
         }
 
+        // Generate invitation token
         $token = bin2hex(
             random_bytes(32)
         );
 
+        // Create invitation
         $invitation = Invitation::create([
             'project_id' => $project->id,
             'invited_by' => $userId,
@@ -165,6 +170,7 @@ class InvitationController extends Controller
             'expires_at' => now()->addDays(7),
         ]);
 
+        // Send invitation email
         Mail::to($data['email'])
             ->send(
                 new InvitationMail($invitation)
@@ -181,6 +187,7 @@ class InvitationController extends Controller
             );
     }
 
+    // Accept invitation
     public function accept($token)
     {
         $invitation = Invitation::where(
@@ -257,6 +264,7 @@ class InvitationController extends Controller
             );
     }
 
+    // Show registration form
     public function showRegister($token)
     {
         $invitation = Invitation::where(
@@ -321,6 +329,7 @@ class InvitationController extends Controller
         );
     }
 
+    // Complete invitation registration
     public function completeRegistration(
         Request $request,
         $token
@@ -409,6 +418,7 @@ class InvitationController extends Controller
                 );
         }
 
+        // Create new user
         DB::transaction(function () use (
             $data,
             $email,
@@ -437,6 +447,7 @@ class InvitationController extends Controller
             );
     }
 
+    // Process accepted invitation for user
     private function acceptInvitationForUser(
         Invitation $invitation,
         User $user
@@ -451,32 +462,45 @@ class InvitationController extends Controller
             );
         }
 
-        $owner = $organization->owner;
-
-        if (!$owner) {
-            throw new \Exception(
-                'Organization owner not found.'
-            );
+        // Save first accepted project
+        if (!$user->primary_project_id) {
+            $user->primary_project_id = $invitation->project_id;
         }
 
-        $organizations = $owner->ownedOrganizations;
+        // Set user's organization
+        $user->organization_id = $organization->id;
 
+        $user->save();
+
+        // Get organization owner
+        $ownerId = $organization->owner_id;
+
+        // Get all organizations owned by the owner
+        $organizations = \App\Models\Organization::where(
+            'owner_id',
+            $ownerId
+        )->get();
+
+        // Add user to all organization projects
         foreach ($organizations as $org) {
 
-            $org->users()->syncWithoutDetaching([
-                $user->id
-            ]);
-
-            $projects = $org->projects;
+            $projects = Project::where(
+                'organization_id',
+                $org->id
+            )->get();
 
             foreach ($projects as $project) {
 
                 $alreadyAssigned = $project
                     ->users()
-                    ->where('users.id', $user->id)
+                    ->where(
+                        'users.id',
+                        $user->id
+                    )
                     ->exists();
 
                 if (!$alreadyAssigned) {
+
                     $project->users()->attach(
                         $user->id,
                         [
@@ -487,9 +511,7 @@ class InvitationController extends Controller
             }
         }
 
-        $user->organization_id = $organization->id;
-        $user->save();
-
+        // Mark invitation as accepted
         $invitation->update([
             'user_id' => $user->id,
             'status' => 'accepted',

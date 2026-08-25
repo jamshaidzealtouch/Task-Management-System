@@ -21,6 +21,7 @@ class User extends Authenticatable
         'password',
         'role',
         'organization_id',
+        'primary_project_id',
     ];
 
     protected $hidden = [
@@ -37,6 +38,13 @@ class User extends Authenticatable
             ->withPivot('role')
             ->withTimestamps();
     }
+    public function primaryProject()
+{
+    return $this->belongsTo(
+        Project::class,
+        'primary_project_id'
+    );
+}
 
     public function ownedOrganizations()
     {

@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+    // Get User Organizations
+
     private function getUserOrganizations()
     {
         $userId = session('user_id');
@@ -35,12 +37,18 @@ class TaskController extends Controller
         )->get();
     }
 
+
+    // Get First User Organization
+
     private function getUserOrganization()
     {
         return $this
             ->getUserOrganizations()
             ->firstOrFail();
     }
+
+
+    // Check Project Access
 
     private function checkProjectAccess(Project $project)
     {
@@ -51,6 +59,8 @@ class TaskController extends Controller
             $project->organization_id
         );
 
+        // Admin
+
         if ($userRole === 'admin') {
 
             if ($organization->owner_id != $userId) {
@@ -59,6 +69,9 @@ class TaskController extends Controller
 
             return $organization;
         }
+
+
+        // Manager
 
         if ($userRole === 'manager') {
 
@@ -83,6 +96,9 @@ class TaskController extends Controller
 
             return $organization;
         }
+
+
+        // Employee
 
         if ($userRole === 'employee') {
 
@@ -111,6 +127,9 @@ class TaskController extends Controller
         abort(403);
     }
 
+
+    // Check Task Access
+
     private function checkTaskAccess(
         Project $project,
         Task $task
@@ -131,6 +150,9 @@ class TaskController extends Controller
         return true;
     }
 
+
+    // Task List
+
     public function index(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -145,6 +167,10 @@ class TaskController extends Controller
                 ->where(
                     'assignee_id',
                     $userId
+                )
+                ->where(
+                    'assignment_status',
+                    'accepted'
                 )
                 ->latest()
                 ->get();
@@ -172,6 +198,9 @@ class TaskController extends Controller
         );
     }
 
+
+    // Create Task
+
     public function create(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -195,10 +224,10 @@ class TaskController extends Controller
         )
             ->whereHas(
                 'projects',
-                function ($query) use ($organization) {
+                function ($query) use ($project) {
                     $query->where(
-                        'organization_id',
-                        $organization->id
+                        'projects.id',
+                        $project->id
                     );
                 }
             )
@@ -213,6 +242,9 @@ class TaskController extends Controller
             )
         );
     }
+
+
+    // Store Task
 
     public function store(
         StoreTaskRequest $request,
@@ -231,13 +263,16 @@ class TaskController extends Controller
 
         $data = $request->validated();
 
+        // Default Assignment Status
+
+        $assignmentStatus = 'accepted';
+
+
+        // Validate Assignee
+
         if (!empty($data['assignee_id'])) {
 
-            $organization = Organization::findOrFail(
-                $project->organization_id
-            );
-
-            $employeeExists = User::where(
+            $employee = User::where(
                 'id',
                 $data['assignee_id']
             )
@@ -247,22 +282,36 @@ class TaskController extends Controller
                 )
                 ->whereHas(
                     'projects',
-                    function ($query) use ($organization) {
+                    function ($query) use ($project) {
                         $query->where(
-                            'organization_id',
-                            $organization->id
+                            'projects.id',
+                            $project->id
                         );
                     }
                 )
-                ->exists();
+                ->first();
 
-            if (!$employeeExists) {
+            if (!$employee) {
                 abort(403);
+            }
+
+
+            // Check Primary Project
+
+            if (
+                $employee->primary_project_id !=
+                $project->id
+            ) {
+                $assignmentStatus = 'pending';
             }
         }
 
+
+        // Create Task
+
         $data['project_id'] = $project->id;
         $data['created_by'] = session('user_id');
+        $data['assignment_status'] = $assignmentStatus;
 
         Task::create($data);
 
@@ -273,9 +322,14 @@ class TaskController extends Controller
             )
             ->with(
                 'success',
-                'Task added successfully.'
+                $assignmentStatus === 'pending'
+                    ? 'Task assigned successfully. Waiting for employee acceptance.'
+                    : 'Task added successfully.'
             );
     }
+
+
+    // Show Task
 
     public function show(
         Project $project,
@@ -294,6 +348,9 @@ class TaskController extends Controller
             )
         );
     }
+
+
+    // Edit Task
 
     public function edit(
         Project $project,
@@ -323,10 +380,10 @@ class TaskController extends Controller
         )
             ->whereHas(
                 'projects',
-                function ($query) use ($organization) {
+                function ($query) use ($project) {
                     $query->where(
-                        'organization_id',
-                        $organization->id
+                        'projects.id',
+                        $project->id
                     );
                 }
             )
@@ -343,6 +400,9 @@ class TaskController extends Controller
         );
     }
 
+
+    // Update Task
+
     public function update(
         UpdateTaskRequest $request,
         Project $project,
@@ -354,7 +414,11 @@ class TaskController extends Controller
         );
 
         $userRole = session('user_role');
+
         $data = $request->validated();
+
+
+        // Employee Can Only Update Status
 
         if ($userRole === 'employee') {
 
@@ -380,6 +444,9 @@ class TaskController extends Controller
                 );
         }
 
+
+        // Admin / Manager
+
         if (
             $userRole !== 'admin' &&
             $userRole !== 'manager'
@@ -387,13 +454,12 @@ class TaskController extends Controller
             abort(403);
         }
 
+
+        // Validate New Assignee
+
         if (!empty($data['assignee_id'])) {
 
-            $organization = Organization::findOrFail(
-                $project->organization_id
-            );
-
-            $employeeExists = User::where(
+            $employee = User::where(
                 'id',
                 $data['assignee_id']
             )
@@ -403,19 +469,34 @@ class TaskController extends Controller
                 )
                 ->whereHas(
                     'projects',
-                    function ($query) use ($organization) {
+                    function ($query) use ($project) {
                         $query->where(
-                            'organization_id',
-                            $organization->id
+                            'projects.id',
+                            $project->id
                         );
                     }
                 )
-                ->exists();
+                ->first();
 
-            if (!$employeeExists) {
+            if (!$employee) {
                 abort(403);
             }
+
+
+            // Assignment Status
+
+            if (
+                $employee->primary_project_id !=
+                $project->id
+            ) {
+                $data['assignment_status'] = 'pending';
+            } else {
+                $data['assignment_status'] = 'accepted';
+            }
         }
+
+
+        // Update Task
 
         $task->update($data);
 
@@ -429,6 +510,9 @@ class TaskController extends Controller
                 'Task updated successfully.'
             );
     }
+
+
+    // Delete Task
 
     public function destroy(
         Project $project,
@@ -461,6 +545,9 @@ class TaskController extends Controller
             );
     }
 
+
+    // Trash
+
     public function trash(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -490,6 +577,9 @@ class TaskController extends Controller
             )
         );
     }
+
+
+    // Restore
 
     public function restore(
         Project $project,
@@ -526,6 +616,9 @@ class TaskController extends Controller
             );
     }
 
+
+    // My Tasks Dashboard
+
     public function myTasks()
     {
         $userId = session('user_id');
@@ -535,21 +628,125 @@ class TaskController extends Controller
             abort(403);
         }
 
-        $tasks = Task::with([
-            'project.organization'
+
+        // Pending Tasks
+
+        $pendingTasks = Task::with([
+            'project.organization',
+            'creator'
         ])
             ->where(
                 'assignee_id',
                 $userId
+            )
+            ->where(
+                'assignment_status',
+                'pending'
+            )
+            ->latest()
+            ->get();
+
+
+        // Accepted Tasks
+
+        $tasks = Task::with([
+            'project.organization',
+            'creator'
+        ])
+            ->where(
+                'assignee_id',
+                $userId
+            )
+            ->where(
+                'assignment_status',
+                'accepted'
             )
             ->latest()
             ->get();
 
         return view(
             'tasks.my-tasks',
-            compact('tasks')
+            compact(
+                'tasks',
+                'pendingTasks'
+            )
         );
     }
+
+
+    // Accept Task
+
+    public function acceptTask(Task $task)
+    {
+        $userId = session('user_id');
+        $userRole = session('user_role');
+
+        if ($userRole !== 'employee') {
+            abort(403);
+        }
+
+        if ($task->assignee_id != $userId) {
+            abort(403);
+        }
+
+        if ($task->assignment_status !== 'pending') {
+
+            return back()->with(
+                'error',
+                'This task assignment is no longer pending.'
+            );
+        }
+
+        $task->update([
+            'assignment_status' => 'accepted',
+        ]);
+
+        return redirect()
+            ->route('my.tasks')
+            ->with(
+                'success',
+                'Task accepted successfully.'
+            );
+    }
+
+
+    // Reject Task
+
+    public function rejectTask(Task $task)
+    {
+        $userId = session('user_id');
+        $userRole = session('user_role');
+
+        if ($userRole !== 'employee') {
+            abort(403);
+        }
+
+        if ($task->assignee_id != $userId) {
+            abort(403);
+        }
+
+        if ($task->assignment_status !== 'pending') {
+
+            return back()->with(
+                'error',
+                'This task assignment is no longer pending.'
+            );
+        }
+
+        $task->update([
+            'assignment_status' => 'rejected',
+        ]);
+
+        return redirect()
+            ->route('my.tasks')
+            ->with(
+                'success',
+                'Task assignment rejected.'
+            );
+    }
+
+
+    // Employee Task Status
 
     public function updateMyTaskStatus(
         Request $request,
@@ -563,6 +760,13 @@ class TaskController extends Controller
         }
 
         if ($task->assignee_id != $userId) {
+            abort(403);
+        }
+
+
+        // Only Accepted Tasks Can Change Status
+
+        if ($task->assignment_status !== 'accepted') {
             abort(403);
         }
 

@@ -417,7 +417,6 @@ class InvitationController extends Controller
                     'Your account already exists and the invitation has been accepted. Please login.'
                 );
         }
-
         // Create new user
         DB::transaction(function () use (
             $data,
@@ -446,7 +445,6 @@ class InvitationController extends Controller
                 'Account created and invitation accepted successfully. Please login.'
             );
     }
-
     // Process accepted invitation for user
     private function acceptInvitationForUser(
         Invitation $invitation,

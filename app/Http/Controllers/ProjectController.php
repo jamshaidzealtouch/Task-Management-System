@@ -10,39 +10,51 @@ use App\Models\User;
 
 class ProjectController extends Controller
 {
+    // Get user organizations
     private function getUserOrganizations()
     {
         $userId = session('user_id');
         $userRole = session('user_role');
 
+        // Admin owns organizations
         if ($userRole === 'admin') {
-
-            return Organization::where(
-                'owner_id',
-                $userId
-            )->get();
+            return Organization::where('owner_id', $userId)->get();
         }
 
+        // Manager / Employee
         $user = User::findOrFail($userId);
 
         return $user->organizations()->get();
     }
 
-    private function getUserOrganization()
+    // Get manager current organization
+    private function getManagerOrganization()
     {
-        return $this
-            ->getUserOrganizations()
-            ->firstOrFail();
+        $userId = session('user_id');
+
+        $user = User::findOrFail($userId);
+
+        if (!$user->organization_id) {
+            abort(403, 'Manager is not assigned to any organization.');
+        }
+
+        return Organization::findOrFail($user->organization_id);
     }
 
-    private function checkOrganizationAccess(
-        Organization $organization
-    ) {
+    // Get first organization
+    private function getUserOrganization()
+    {
+        return $this->getUserOrganizations()->firstOrFail();
+    }
+
+    // Check organization access
+    private function checkOrganizationAccess(Organization $organization)
+    {
         $userId = session('user_id');
         $userRole = session('user_role');
 
+        // Admin
         if ($userRole === 'admin') {
-
             if ($organization->owner_id != $userId) {
                 abort(403);
             }
@@ -50,68 +62,71 @@ class ProjectController extends Controller
             return;
         }
 
-        $user = User::findOrFail($userId);
+        // Manager
+        if ($userRole === 'manager') {
+            $user = User::findOrFail($userId);
 
-        $hasAccess = $user
-            ->organizations()
-            ->where(
-                'organizations.id',
-                $organization->id
-            )
-            ->exists();
+            if ($user->organization_id != $organization->id) {
+                abort(403);
+            }
 
-        if (!$hasAccess) {
-            abort(403);
+            return;
         }
+
+        // Employee
+        if ($userRole === 'employee') {
+            $user = User::findOrFail($userId);
+
+            $hasAccess = $user
+                ->organizations()
+                ->where('organizations.id', $organization->id)
+                ->exists();
+
+            if (!$hasAccess) {
+                abort(403);
+            }
+
+            return;
+        }
+
+        abort(403);
     }
 
-    private function checkProjectAccess(
-        Project $project
-    ) {
+    // Check project access
+    private function checkProjectAccess(Project $project)
+    {
         $organization = Organization::findOrFail(
             $project->organization_id
         );
 
-        $this->checkOrganizationAccess(
-            $organization
-        );
+        $this->checkOrganizationAccess($organization);
 
         return $organization;
     }
 
+    // Add organization members to project
     private function addOrganizationMembersToProject(
         Project $project,
         Organization $organization
     ) {
-        $members = $organization
-            ->users()
-            ->get();
+        $members = $organization->users()->get();
 
         foreach ($members as $member) {
-
             $alreadyExists = $project
                 ->users()
-                ->where(
-                    'users.id',
-                    $member->id
-                )
+                ->where('users.id', $member->id)
                 ->exists();
 
             if (!$alreadyExists) {
-
                 $role = 'employee';
 
                 if ($member->role) {
-
                     $role = $member->role instanceof \BackedEnum
                         ? $member->role->value
                         : $member->role;
                 }
 
-                if (!in_array(
-                    $role,
-                    ['owner', 'manager', 'employee']
-                )) {
+                if (!in_array($role, ['owner', 'manager', 'employee'])) {
                     $role = 'employee';
                 }
 
@@ -125,18 +140,18 @@ class ProjectController extends Controller
         }
     }
 
+    // Project list
     public function index()
     {
         $userId = session('user_id');
         $userRole = session('user_role');
 
+        // Admin
         if ($userRole === 'admin') {
-
             $organizationIds = Organization::where(
                 'owner_id',
                 $userId
-            )
-                ->pluck('id');
+            )->pluck('id');
 
             $projects = Project::whereIn(
                 'organization_id',
@@ -146,11 +161,24 @@ class ProjectController extends Controller
                 ->get();
         }
 
-        elseif (
-            $userRole === 'manager' ||
-            $userRole === 'employee'
-        ) {
+        // Manager
+        elseif ($userRole === 'manager') {
+            $user = User::findOrFail($userId);
 
+            if (!$user->organization_id) {
+                abort(403);
+            }
+
+            $projects = Project::where(
+                'organization_id',
+                $user->organization_id
+            )
+                ->latest()
+                ->get();
+        }
+
+        // Employee
+        elseif ($userRole === 'employee') {
             $user = User::findOrFail($userId);
 
             $organizationIds = $user
@@ -175,17 +203,14 @@ class ProjectController extends Controller
         );
     }
 
-    public function organizationProjects(
-        Organization $organization
-    ) {
+    // Organization projects
+    public function organizationProjects(Organization $organization)
+    {
         if (session('user_role') !== 'admin') {
             abort(403);
         }
 
-        if (
-            $organization->owner_id !=
-            session('user_id')
-        ) {
+        if ($organization->owner_id != session('user_id')) {
             abort(403);
         }
 
@@ -198,44 +223,46 @@ class ProjectController extends Controller
 
         return view(
             'projects.index',
-            compact(
-                'projects',
-                'organization'
-            )
+            compact('projects', 'organization')
         );
     }
 
+    // Create project
     public function create()
     {
         $userRole = session('user_role');
 
-        if (
-            $userRole !== 'admin' &&
-            $userRole !== 'manager'
-        ) {
+        if ($userRole !== 'admin' && $userRole !== 'manager') {
             abort(403);
         }
 
-        $organizations =
-            $this->getUserOrganizations();
+        // Admin
+        if ($userRole === 'admin') {
+            $organizations = $this->getUserOrganizations();
+
+            return view(
+                'projects.create',
+                compact('organizations')
+            );
+        }
+
+        // Manager
+        $organization = $this->getManagerOrganization();
 
         return view(
             'projects.create',
-            compact('organizations')
+            compact('organization')
         );
     }
 
-    public function organizationCreate(
-        Organization $organization
-    ) {
+    // Organization create
+    public function organizationCreate(Organization $organization)
+    {
         if (session('user_role') !== 'admin') {
             abort(403);
         }
 
-        if (
-            $organization->owner_id !=
-            session('user_id')
-        ) {
+        if ($organization->owner_id != session('user_id')) {
             abort(403);
         }
 
@@ -245,26 +272,21 @@ class ProjectController extends Controller
         );
     }
 
-    public function store(
-        StoreProjectRequest $request
-    ) {
+    // Store project
+    public function store(StoreProjectRequest $request)
+    {
         $userRole = session('user_role');
         $userId = session('user_id');
 
-        if (
-            $userRole !== 'admin' &&
-            $userRole !== 'manager'
-        ) {
+        if ($userRole !== 'admin' && $userRole !== 'manager') {
             abort(403);
         }
 
         $data = $request->validated();
 
+        // Admin
         if ($userRole === 'admin') {
-
-            if (
-                empty($data['organization_id'])
-            ) {
+            if (empty($data['organization_id'])) {
                 abort(422);
             }
 
@@ -272,37 +294,21 @@ class ProjectController extends Controller
                 'id',
                 $data['organization_id']
             )
-                ->where(
-                    'owner_id',
-                    $userId
-                )
+                ->where('owner_id', $userId)
                 ->firstOrFail();
         }
 
+        // Manager
         else {
+            $organization = $this->getManagerOrganization();
 
-            if (
-                empty($data['organization_id'])
-            ) {
-                abort(422);
-            }
-
-            $organization = Organization::findOrFail(
-                $data['organization_id']
-            );
-
-            $this->checkOrganizationAccess(
-                $organization
-            );
-
-            $data['organization_id'] =
-                $organization->id;
+            $data['organization_id'] = $organization->id;
         }
 
-        $data['user_id'] = $userId;
-
+        // Create project
         $project = Project::create($data);
 
+        // Add organization members
         $this->addOrganizationMembersToProject(
             $project,
             $organization
@@ -316,6 +322,7 @@ class ProjectController extends Controller
             );
     }
 
+    // Organization store
     public function organizationStore(
         StoreProjectRequest $request,
         Organization $organization
@@ -324,20 +331,13 @@ class ProjectController extends Controller
             abort(403);
         }
 
-        if (
-            $organization->owner_id !=
-            session('user_id')
-        ) {
+        if ($organization->owner_id != session('user_id')) {
             abort(403);
         }
 
         $data = $request->validated();
 
-        $data['organization_id'] =
-            $organization->id;
-
-        $data['user_id'] =
-            session('user_id');
+        $data['organization_id'] = $organization->id;
 
         $project = Project::create($data);
 
@@ -357,12 +357,10 @@ class ProjectController extends Controller
             );
     }
 
-    public function show(
-        Project $project
-    ) {
-        $this->checkProjectAccess(
-            $project
-        );
+    // Show project
+    public function show(Project $project)
+    {
+        $this->checkProjectAccess($project);
 
         return view(
             'projects.show',
@@ -370,27 +368,20 @@ class ProjectController extends Controller
         );
     }
 
-    public function edit(
-        Project $project
-    ) {
+    // Edit project
+    public function edit(Project $project)
+    {
         $userRole = session('user_role');
 
-        if (
-            $userRole !== 'admin' &&
-            $userRole !== 'manager'
-        ) {
+        if ($userRole !== 'admin' && $userRole !== 'manager') {
             abort(403);
         }
 
-        $organization =
-            $this->checkProjectAccess(
-                $project
-            );
+        $organization = $this->checkProjectAccess($project);
 
+        // Admin
         if ($userRole === 'admin') {
-
-            $organizations =
-                $this->getUserOrganizations();
+            $organizations = $this->getUserOrganizations();
 
             return view(
                 'projects.edit',
@@ -399,6 +390,13 @@ class ProjectController extends Controller
                     'organizations'
                 )
             );
+        }
+
+        // Manager
+        $managerOrganization = $this->getManagerOrganization();
+
+        if ($project->organization_id != $managerOrganization->id) {
+            abort(403);
         }
 
         return view(
@@ -410,6 +408,7 @@ class ProjectController extends Controller
         );
     }
 
+    // Update project
     public function update(
         UpdateProjectRequest $request,
         Project $project
@@ -417,67 +416,48 @@ class ProjectController extends Controller
         $userRole = session('user_role');
         $userId = session('user_id');
 
-        if (
-            $userRole !== 'admin' &&
-            $userRole !== 'manager'
-        ) {
+        if ($userRole !== 'admin' && $userRole !== 'manager') {
             abort(403);
         }
 
-        $currentOrganization =
-            Organization::findOrFail(
-                $project->organization_id
-            );
-
-        $this->checkOrganizationAccess(
-            $currentOrganization
+        $currentOrganization = Organization::findOrFail(
+            $project->organization_id
         );
+
+        $this->checkOrganizationAccess($currentOrganization);
 
         $data = $request->validated();
 
+        // Admin
         if ($userRole === 'admin') {
-
-            if (
-                empty($data['organization_id'])
-            ) {
+            if (empty($data['organization_id'])) {
                 abort(422);
             }
 
-            $newOrganization =
-                Organization::where(
-                    'id',
-                    $data['organization_id']
-                )
-                    ->where(
-                        'owner_id',
-                        $userId
-                    )
-                    ->firstOrFail();
+            $newOrganization = Organization::where(
+                'id',
+                $data['organization_id']
+            )
+                ->where('owner_id', $userId)
+                ->firstOrFail();
         }
 
+        // Manager
         else {
+            $newOrganization = $this->getManagerOrganization();
 
-            $newOrganization =
-                Organization::findOrFail(
-                    $data['organization_id']
-                );
-
-            $this->checkOrganizationAccess(
-                $newOrganization
-            );
-
-            $data['organization_id'] =
-                $newOrganization->id;
+            $data['organization_id'] = $newOrganization->id;
         }
 
+        // Check organization change
         $organizationChanged =
-            $project->organization_id !=
-            $newOrganization->id;
+            $project->organization_id != $newOrganization->id;
 
+        // Update project
         $project->update($data);
 
+        // Add new organization members
         if ($organizationChanged) {
-
             $this->addOrganizationMembersToProject(
                 $project,
                 $newOrganization
@@ -492,21 +472,16 @@ class ProjectController extends Controller
             );
     }
 
-    public function destroy(
-        Project $project
-    ) {
+    // Delete project
+    public function destroy(Project $project)
+    {
         $userRole = session('user_role');
 
-        if (
-            $userRole !== 'admin' &&
-            $userRole !== 'manager'
-        ) {
+        if ($userRole !== 'admin' && $userRole !== 'manager') {
             abort(403);
         }
 
-        $this->checkProjectAccess(
-            $project
-        );
+        $this->checkProjectAccess($project);
 
         $project->delete();
 

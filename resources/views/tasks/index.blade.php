@@ -86,6 +86,7 @@
                 <th>Priority</th>
                 <th>Status</th>
                 <th>Assigned To</th>
+                <th>Assignment</th>
                 <th width="220">Action</th>
 
             </tr>
@@ -155,7 +156,7 @@
                 </td>
 
 
-                {{-- Status --}}
+                {{-- Task Status --}}
                 <td class="text-center">
 
                     @php
@@ -208,6 +209,44 @@
 
                         <span class="text-muted">
                             Not Assigned
+                        </span>
+
+                    @endif
+
+                </td>
+
+
+                {{-- Assignment Status --}}
+                <td class="text-center">
+
+                    @if(!$task->assignee_id)
+
+                        <span class="badge bg-secondary">
+                            Not Assigned
+                        </span>
+
+                    @elseif($task->assignment_status === 'pending')
+
+                        <span class="badge bg-warning text-dark">
+                            Pending
+                        </span>
+
+                    @elseif($task->assignment_status === 'accepted')
+
+                        <span class="badge bg-success">
+                            Accepted
+                        </span>
+
+                    @elseif($task->assignment_status === 'rejected')
+
+                        <span class="badge bg-danger">
+                            Rejected
+                        </span>
+
+                    @else
+
+                        <span class="badge bg-secondary">
+                            Pending
                         </span>
 
                     @endif
@@ -290,7 +329,7 @@
             <tr>
 
                 <td
-                    colspan="8"
+                    colspan="9"
                     class="text-center text-danger py-3"
                 >
                     No Tasks Found

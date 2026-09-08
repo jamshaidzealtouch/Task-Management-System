@@ -3,38 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Models\Organization;
+use App\Models\User;
 use App\Http\Requests\StoreOrganizationRequest;
 use App\Http\Requests\UpdateOrganizationRequest;
+use Illuminate\Support\Facades\Gate;
 
 class OrganizationController extends Controller
 {
-    // all data show
+    // All organizations show
     public function index()
     {
-        $userId = session('user_id');
-        $userRole = session('user_role');
+        $user = User::findOrFail(
+            session('user_id')
+        );
+
+        Gate::forUser($user)->authorize(
+            'viewAny',
+            Organization::class
+        );
+
+        $userId = $user->id;
+        $userRole = $user->role->value;
 
         if ($userRole === 'admin') {
 
-            // Admin sees organizations owned by him
             $organizations = Organization::where(
                 'owner_id',
                 $userId
             )->get();
 
-        } elseif ($userRole === 'manager') {
+        } else {
 
-            // Manager sees organizations where he is assigned
             $organizations = Organization::whereHas(
                 'users',
                 function ($query) use ($userId) {
-                    $query->where('users.id', $userId);
+                    $query->where(
+                        'users.id',
+                        $userId
+                    );
                 }
             )->get();
-
-        } else {
-
-            abort(403);
         }
 
         return view(
@@ -43,29 +51,39 @@ class OrganizationController extends Controller
         );
     }
 
-    // new organization create
+    // New organization create
     public function create()
     {
-        // Only admin can create organization
-        if (session('user_role') !== 'admin') {
-            abort(403);
-        }
+        $user = User::findOrFail(
+            session('user_id')
+        );
 
-        return view('organizations.create');
+        Gate::forUser($user)->authorize(
+            'create',
+            Organization::class
+        );
+
+        return view(
+            'organizations.create'
+        );
     }
 
-    // data save in database
-    public function store(StoreOrganizationRequest $request)
-    {
-        // Only admin can create organization
-        if (session('user_role') !== 'admin') {
-            abort(403);
-        }
+    // Save organization
+    public function store(
+        StoreOrganizationRequest $request
+    ) {
+        $user = User::findOrFail(
+            session('user_id')
+        );
+
+        Gate::forUser($user)->authorize(
+            'create',
+            Organization::class
+        );
 
         $data = $request->validated();
 
-        // Logged-in user becomes the owner/admin
-        $data['owner_id'] = session('user_id');
+        $data['owner_id'] = $user->id;
 
         Organization::create($data);
 
@@ -77,12 +95,18 @@ class OrganizationController extends Controller
             );
     }
 
-    // show data ui
-    public function show(Organization $organization)
-    {
-        if ($organization->owner_id != session('user_id')) {
-            abort(404);
-        }
+    // Show organization
+    public function show(
+        Organization $organization
+    ) {
+        $user = User::findOrFail(
+            session('user_id')
+        );
+
+        Gate::forUser($user)->authorize(
+            'view',
+            $organization
+        );
 
         return view(
             'organizations.show',
@@ -90,12 +114,18 @@ class OrganizationController extends Controller
         );
     }
 
-    // edit data organization
-    public function edit(Organization $organization)
-    {
-        if ($organization->owner_id != session('user_id')) {
-            abort(404);
-        }
+    // Edit organization
+    public function edit(
+        Organization $organization
+    ) {
+        $user = User::findOrFail(
+            session('user_id')
+        );
+
+        Gate::forUser($user)->authorize(
+            'update',
+            $organization
+        );
 
         return view(
             'organizations.edit',
@@ -103,13 +133,19 @@ class OrganizationController extends Controller
         );
     }
 
+    // Update organization
     public function update(
         UpdateOrganizationRequest $request,
         Organization $organization
     ) {
-        if ($organization->owner_id != session('user_id')) {
-            abort(404);
-        }
+        $user = User::findOrFail(
+            session('user_id')
+        );
+
+        Gate::forUser($user)->authorize(
+            'update',
+            $organization
+        );
 
         $organization->update(
             $request->validated()
@@ -123,12 +159,18 @@ class OrganizationController extends Controller
             );
     }
 
-    // delete data
-    public function destroy(Organization $organization)
-    {
-        if ($organization->owner_id != session('user_id')) {
-            abort(404);
-        }
+    // Delete organization
+    public function destroy(
+        Organization $organization
+    ) {
+        $user = User::findOrFail(
+            session('user_id')
+        );
+
+        Gate::forUser($user)->authorize(
+            'delete',
+            $organization
+        );
 
         $organization->delete();
 

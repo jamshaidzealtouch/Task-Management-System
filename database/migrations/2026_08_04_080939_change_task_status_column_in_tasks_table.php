@@ -6,33 +6,55 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // task migration file 
     public function up(): void
     {
-        Schema::table('tasks', function (Blueprint $table) {
+        Schema::create('tasks', function (Blueprint $table) {
 
-            $table->enum('status', [
-                'to_do',
-                'in_progress',
-                'completed',
-            ])->default('to_do')->change();
+            $table->id();
+
+            $table->foreignId('project_id')
+                ->constrained('projects')
+                ->cascadeOnDelete();
+
+            $table->foreignId('created_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->foreignId('assignee_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->string('title');
+
+            $table->text('description')
+                ->nullable();
 
             $table->enum('priority', [
                 'low',
                 'medium',
                 'high',
-            ])->default('medium')->change();
+            ])->default('medium');
 
+            $table->enum('status', [
+                'to_do',
+                'in_progress',
+                'completed',
+            ])->default('to_do');
+
+            $table->date('due_date')
+                ->nullable();
+
+            $table->timestamps();
+
+            $table->softDeletes();
         });
     }
 
     public function down(): void
     {
-        Schema::table('tasks', function (Blueprint $table) {
-
-            $table->string('status')->change();
-
-            $table->string('priority')->change();
-
-        });
+        Schema::dropIfExists('tasks');
     }
 };

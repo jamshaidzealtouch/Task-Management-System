@@ -24,10 +24,20 @@ class StoreTaskRequest extends FormRequest
 
             'due_date' => 'required|date',
 
-            'priority' => [new Enum(TaskPriority::class)],
+            'priority' => [
+                'required',
+                new Enum(TaskPriority::class),
+            ],
 
-            'status' => [new Enum(TaskStatus::class)],
+            'status' => [
+                'required',
+                new Enum(TaskStatus::class),
+            ],
 
+            'assignee_id' => [
+                'nullable',
+                'exists:users,id',
+            ],
         ];
     }
 }

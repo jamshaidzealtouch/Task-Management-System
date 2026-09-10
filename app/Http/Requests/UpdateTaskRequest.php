@@ -13,7 +13,7 @@ class UpdateTaskRequest extends FormRequest
     {
         return true;
     }
-
+//when update task 
     public function rules(): array
     {
         return [
@@ -34,6 +34,10 @@ class UpdateTaskRequest extends FormRequest
                 new Enum(TaskStatus::class),
             ],
 
+            'assignee_id' => [
+                'nullable',
+                'exists:users,id',
+            ],
         ];
     }
 }

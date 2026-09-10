@@ -3,33 +3,49 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Enums\ProjectStatus;
-use Illuminate\Validation\Rules\Enum;
 
 class StoreProjectRequest extends FormRequest
 {
-    
     public function authorize(): bool
     {
         return true;
     }
-
-    //rule
+//project add rule 
     public function rules(): array
     {
         return [
 
-            'title' => 'required|max:255',
+            'organization_id' => [
+                'required',
+                'integer',
+                'exists:organizations,id',
+            ],
 
-            'description' => 'required',
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
 
-            'start_date' => 'required|date',
+            'description' => [
+                'nullable',
+                'string',
+            ],
 
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_date' => [
+                'required',
+                'date',
+            ],
+
+            'end_date' => [
+                'required',
+                'date',
+                'after_or_equal:start_date',
+            ],
 
             'status' => [
-            'required',
-             new Enum(ProjectStatus::class),
+                'required',
+                'string',
             ],
 
         ];

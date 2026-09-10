@@ -2,46 +2,59 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\ProjectStatus;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Organization;
+use App\Models\User;
+use App\Models\Task;
+use App\Models\Invitation;
 
 class Project extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-
-        'user_id',
-
         'title',
-
         'description',
-
         'start_date',
-
         'end_date',
-
         'status',
-
+        'organization_id',
     ];
 
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'status' => ProjectStatus::class,
+    ];
 
-
-protected $casts = [
-
-    'status' => ProjectStatus::class,
-
-];
-
-    public function user()
+    public function organization()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(
+            Organization::class,
+            'organization_id'
+        );
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'project_user'
+        )->withPivot('role');
     }
 
     public function tasks()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(
+            Task::class,
+            'project_id'
+        );
+    }
+
+    public function invitations()
+    {
+        return $this->hasMany(
+            Invitation::class,
+            'project_id'
+        );
     }
 }

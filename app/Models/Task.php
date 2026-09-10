@@ -12,25 +12,43 @@ class Task extends Model
     use SoftDeletes;
 
     protected $fillable = [
-
         'project_id',
+        'created_by',
+        'assignee_id',
+        'assignment_status',
         'title',
         'description',
         'due_date',
         'priority',
         'status',
-
     ];
+
     protected $casts = [
-
         'status' => TaskStatus::class,
-
         'priority' => TaskPriority::class,
-
+        'due_date' => 'date',
     ];
 
     public function project()
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(
+            Project::class
+        );
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(
+            User::class,
+            'created_by'
+        );
+    }
+
+    public function assignee()
+    {
+        return $this->belongsTo(
+            User::class,
+            'assignee_id'
+        );
     }
 }

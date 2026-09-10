@@ -4,26 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use App\Enums\UserRole;
 
 class RegisterController extends Controller
 {
-  
+//register base on role 
     public function index()
     {
         return view('auth.register');
     }
-
-    
     public function store(RegisterRequest $request)
-{
-    $data = $request->validated();
-
-    $data['password'] = Hash::make($data['password']);
-
-    User::create($data);
-
-    return redirect('/login')
-        ->with('success', 'Registration successful. Please login.');
-}
+    {
+        $data = $request->validated();
+    
+        $data['role'] = UserRole::Admin;
+    
+        User::create($data);
+    
+        return redirect()
+            ->route('login')
+            ->with(
+                'success',
+                'Registration successful.'
+            );
+    }
 }

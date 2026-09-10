@@ -10,10 +10,11 @@ use App\Enums\UserRole;
 use App\Models\Project;
 use App\Models\Organization;
 use App\Models\Task;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory,HasApiTokens, Notifiable;
 
     protected $fillable = [
         'name',

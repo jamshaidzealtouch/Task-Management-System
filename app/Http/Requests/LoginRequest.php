@@ -6,21 +6,24 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LoginRequest extends FormRequest
 {
-    
     public function authorize(): bool
     {
         return true;
     }
 
-    //login validation 
+    // Login validation
     public function rules(): array
     {
         return [
+            'email' => [
+                'required',
+                'email',
+            ],
 
-            'email' => 'required|email',
-
-            'password' => 'required',
-
+            'password' => [
+                'required',
+                'string',
+            ],
         ];
     }
 }

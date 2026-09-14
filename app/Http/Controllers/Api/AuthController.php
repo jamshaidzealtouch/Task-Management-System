@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\MemberResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -25,7 +26,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful.',
-            'user' => $user,
+            'user' => new MemberResource($user),
             'token' => $token,
         ], 200);
     }
@@ -48,7 +49,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Registration successful.',
-            'user' => $user,
+           'user' => new MemberResource($user),
         ], 201);
     }
 }

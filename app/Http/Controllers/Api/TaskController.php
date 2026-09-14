@@ -7,6 +7,7 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use App\Http\Resources\TaskResource;
 
 class TaskController extends Controller
 {
@@ -20,7 +21,7 @@ class TaskController extends Controller
 
         return response()->json([
             'message' => 'Tasks fetched successfully.',
-            'tasks' => $tasks,
+           'tasks' => TaskResource::collection($tasks),
         ], 200);
     }
 
@@ -40,11 +41,13 @@ class TaskController extends Controller
 
         return response()->json([
             'message' => 'Task created successfully.',
-            'task' => $task->load([
-                'project',
-                'creator',
-                'assignee'
-            ]),
+            'task' => new TaskResource(
+                $task->load([
+                    'project',
+                    'creator',
+                    'assignee'
+                ])
+            ),
         ], 201);
     }
 
@@ -52,11 +55,13 @@ class TaskController extends Controller
     {
         return response()->json([
             'message' => 'Task fetched successfully.',
-            'task' => $task->load([
-                'project',
-                'creator',
-                'assignee'
-            ]),
+            'task' => new TaskResource(
+                $task->load([
+                    'project',
+                    'creator',
+                    'assignee'
+                ])
+            ),
         ], 200);
     }
 
@@ -76,11 +81,13 @@ class TaskController extends Controller
 
         return response()->json([
             'message' => 'Task updated successfully.',
-            'task' => $task->load([
-                'project',
-                'creator',
-                'assignee'
-            ]),
+            'task' => new TaskResource(
+    $task->load([
+        'project',
+        'creator',
+        'assignee'
+    ])
+),
         ], 200);
     }
 
@@ -96,7 +103,13 @@ class TaskController extends Controller
 
         return response()->json([
             'message' => 'Task status updated successfully.',
-            'task' => $task,
+           'task' => new TaskResource(
+            $task->load([
+                'project',
+                'creator',
+                'assignee'
+            ])
+        ),
         ], 200);
     }
 

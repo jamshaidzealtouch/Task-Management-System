@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
+use App\Http\Resources\OrganizationResource;
 use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
@@ -14,7 +15,7 @@ class OrganizationController extends Controller
 
         return response()->json([
             'message' => 'Organizations fetched successfully.',
-            'organizations' => $organizations,
+            'organizations' => OrganizationResource::collection($organizations),
         ], 200);
     }
 
@@ -22,7 +23,7 @@ class OrganizationController extends Controller
 {
     return response()->json([
         'message' => 'Organization fetched successfully.',
-        'organization' => $organization,
+     'organization' => new OrganizationResource($organization),
     ], 200);
 }
 
@@ -41,7 +42,7 @@ class OrganizationController extends Controller
     
         return response()->json([
             'message' => 'Organization created successfully.',
-            'organization' => $organization,
+            'organization' => new OrganizationResource($organization),
         ], 201);
     }
 
@@ -57,7 +58,7 @@ class OrganizationController extends Controller
 
     return response()->json([
         'message' => 'Organization updated successfully.',
-        'organization' => $organization,
+        'organization' => new OrganizationResource($organization),
     ], 200);
 }
 public function destroy(Organization $organization)

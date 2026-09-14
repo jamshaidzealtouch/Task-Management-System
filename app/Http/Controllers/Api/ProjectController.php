@@ -6,20 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
+use App\Http\Resources\ProjectResource;
 
 class ProjectController extends Controller
 {
-    // Get all projects
     public function index()
     {
         $projects = Project::all();
 
         return response()->json([
             'message' => 'Projects fetched successfully.',
-            'projects' => $projects,
+            'projects' => ProjectResource::collection($projects),
         ], 200);
     }
-    // Create project
     public function store(StoreProjectRequest $request)
     {
         $project = Project::create([
@@ -33,7 +32,7 @@ class ProjectController extends Controller
 
         return response()->json([
             'message' => 'Project created successfully.',
-            'project' => $project,
+            'project' => new ProjectResource($project),
         ], 201);
     }
     // Get one project
@@ -41,7 +40,7 @@ class ProjectController extends Controller
     {
         return response()->json([
             'message' => 'Project fetched successfully.',
-            'project' => $project,
+            'project' => new ProjectResource($project),
         ], 200);
     }
     // Update project
@@ -58,7 +57,7 @@ class ProjectController extends Controller
 
         return response()->json([
             'message' => 'Project updated successfully.',
-            'project' => $project,
+            'project' => new ProjectResource($project),
         ], 200);
     }
     // Delete project

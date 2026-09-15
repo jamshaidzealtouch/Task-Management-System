@@ -9,27 +9,34 @@ use App\Http\Resources\MemberResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Services\AuthService;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private AuthService $authService
+    ) {
+    }
     public function login(LoginRequest $request)
     {
-        $user = User::where('email', $request->email)->first();
+        $result = $this->authService->login(
+            $request->email,
+            $request->password
+        );
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$result['success']) {
             return response()->json([
-                'message' => 'Invalid email or password.'
+                'message' => $result['message']
             ], 401);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
-
         return response()->json([
             'message' => 'Login successful.',
-            'user' => new MemberResource($user),
-            'token' => $token,
+            'user' => new MemberResource($result['user']),
+            'token' => $result['token'],
         ], 200);
     }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -40,16 +47,12 @@ class AuthController extends Controller
     }
     // Register new user
     public function register(RegisterRequest $request)
-    {
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+{
+    $user = $this->authService->register( $request->name,$request->email,$request->password, $request->role);
 
-        return response()->json([
-            'message' => 'Registration successful.',
-           'user' => new MemberResource($user),
-        ], 201);
-    }
+    return response()->json([
+        'message' => 'Registration successful.',
+        'user' => new MemberResource($user),
+    ], 201);
+}
 }

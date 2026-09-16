@@ -5,14 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
-use App\Models\Project;
 use App\Http\Resources\ProjectResource;
+use App\Services\ProjectService;
 
 class ProjectController extends Controller
 {
+    public function __construct(private ProjectService $projectService)
+    {
+    }
+
     public function index()
     {
-        $projects = Project::all();
+        $projects = $this->projectService->getAllProjects();
 
         return response()->json([
             'message' => 'Projects fetched successfully.',
@@ -21,14 +25,9 @@ class ProjectController extends Controller
     }
     public function store(StoreProjectRequest $request)
     {
-        $project = Project::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'status' => $request->status,
-            'organization_id' => $request->organization_id,
-        ]);
+        $project = $this->projectService->createProject(
+            $request->validated()
+        );
 
         return response()->json([
             'message' => 'Project created successfully.',
@@ -44,17 +43,13 @@ class ProjectController extends Controller
         ], 200);
     }
     // Update project
-    public function update(UpdateProjectRequest $request, Project $project)
+    public function update( UpdateProjectRequest $request,Project $project) 
     {
-        $project->update([
-            'title' => $request->title,
-            'description' => $request->description,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'status' => $request->status,
-            'organization_id' => $request->organization_id,
-        ]);
-
+        $project = $this->projectService->updateProject(
+            $project,
+            $request->validated()
+        );
+    
         return response()->json([
             'message' => 'Project updated successfully.',
             'project' => new ProjectResource($project),

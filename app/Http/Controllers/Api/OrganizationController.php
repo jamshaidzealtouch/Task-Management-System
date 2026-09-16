@@ -3,15 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Organization;
 use App\Http\Resources\OrganizationResource;
+use App\Models\Organization;
+use App\Services\OrganizationService;
 use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
 {
+    protected OrganizationService $organizationService;
+
+    public function __construct(OrganizationService $organizationService)
+    {
+        $this->organizationService = $organizationService;
+    }
+
     public function index()
     {
-        $organizations = Organization::all();
+        $organizations = $this->organizationService->getAll();
 
         return response()->json([
             'message' => 'Organizations fetched successfully.',
@@ -20,26 +28,24 @@ class OrganizationController extends Controller
     }
 
     public function show(Organization $organization)
-{
-    return response()->json([
-        'message' => 'Organization fetched successfully.',
-     'organization' => new OrganizationResource($organization),
-    ], 200);
-}
+    {
+        return response()->json([
+            'message' => 'Organization fetched successfully.',
+            'organization' => new OrganizationResource($organization),
+        ], 200);
+    }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
-    
-        $user = $request->user();
-    
-        $organization = Organization::create([
-            'name' => $request->name,
-            'owner_id' => $user->id,
-        ]);
-    
+
+        $organization = $this->organizationService->create(
+            $request->only('name'),
+            $request->user()
+        );
+
         return response()->json([
             'message' => 'Organization created successfully.',
             'organization' => new OrganizationResource($organization),
@@ -47,26 +53,29 @@ class OrganizationController extends Controller
     }
 
     public function update(Request $request, Organization $organization)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-    ]);
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
 
-    $organization->update([
-        'name' => $request->name,
-    ]);
+        $organization = $this->organizationService->update(
+            $organization,
+            $request->only('name')
+        );
 
-    return response()->json([
-        'message' => 'Organization updated successfully.',
-        'organization' => new OrganizationResource($organization),
-    ], 200);
-}
-public function destroy(Organization $organization)
-{
-    $organization->delete();
+        return response()->json([
+            'message' => 'Organization updated successfully.',
+            'organization' => new OrganizationResource($organization),
+        ], 200);
+    }
 
-    return response()->json([
-        'message' => 'Organization deleted successfully.',
-    ], 200);
+    public function destroy(Organization $organization)
+    {
+        $this->organizationService->delete($organization);
+
+        return response()->json([
+            'message' => 'Organization deleted successfully.',
+        ], 200);
+    }
 }
-}
+

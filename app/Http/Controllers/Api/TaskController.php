@@ -5,49 +5,34 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
-use App\Models\Task;
 use Illuminate\Http\Request;
 use App\Http\Resources\TaskResource;
+use App\Services\TaskService;
 
 class TaskController extends Controller
 {
+    public function __construct(private TaskService $taskService)
+    {
+    }
     public function index()
     {
-        $tasks = Task::with([
-            'project',
-            'creator',
-            'assignee'
-        ])->get();
-
+        $tasks = $this->taskService->getAllTasks();
+    
         return response()->json([
             'message' => 'Tasks fetched successfully.',
-           'tasks' => TaskResource::collection($tasks),
+            'tasks' => TaskResource::collection($tasks),
         ], 200);
     }
 
     public function store(StoreTaskRequest $request)
     {
-        $task = Task::create([
-            'project_id' => $request->project_id,
-            'created_by' => $request->created_by,
-            'assignee_id' => $request->assignee_id,
-            'assignment_status' => $request->assignment_status,
-            'title' => $request->title,
-            'description' => $request->description,
-            'due_date' => $request->due_date,
-            'priority' => $request->priority,
-            'status' => $request->status,
-        ]);
-
+        $task = $this->taskService->createTask(
+            $request->validated()
+        );
+    
         return response()->json([
             'message' => 'Task created successfully.',
-            'task' => new TaskResource(
-                $task->load([
-                    'project',
-                    'creator',
-                    'assignee'
-                ])
-            ),
+            'task' => new TaskResource($task),
         ], 201);
     }
 
@@ -64,30 +49,16 @@ class TaskController extends Controller
             ),
         ], 200);
     }
-
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        $task->update([
-            'project_id' => $request->project_id,
-            'created_by' => $request->created_by,
-            'assignee_id' => $request->assignee_id,
-            'assignment_status' => $request->assignment_status,
-            'title' => $request->title,
-            'description' => $request->description,
-            'due_date' => $request->due_date,
-            'priority' => $request->priority,
-            'status' => $request->status,
-        ]);
-
+        $task = $this->taskService->updateTask(
+            $task,
+            $request->validated()
+        );
+    
         return response()->json([
             'message' => 'Task updated successfully.',
-            'task' => new TaskResource(
-    $task->load([
-        'project',
-        'creator',
-        'assignee'
-    ])
-),
+            'task' => new TaskResource($task),
         ], 200);
     }
 

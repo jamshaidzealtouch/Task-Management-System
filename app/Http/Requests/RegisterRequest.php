@@ -11,11 +11,10 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
-    // Register rules
+    // Register validation
     public function rules(): array
     {
         return [
-
             'name' => [
                 'required',
                 'string',
@@ -34,7 +33,10 @@ class RegisterRequest extends FormRequest
                 'min:4',
                 'confirmed',
             ],
-
+            'role' => [
+    'required',
+    'in:admin,manager,employee',
+],
         ];
     }
 }

@@ -22,16 +22,33 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth:sanctum');
 
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')
+    ->name('api.')
+    ->group(function () {
 
-    Route::apiResource('organizations', OrganizationController::class);
+        Route::apiResource('organizations', OrganizationController::class);
 
-    Route::apiResource('projects', ProjectController::class);
+        Route::apiResource('projects', ProjectController::class);
 
-    Route::apiResource('tasks', TaskController::class);
+        Route::apiResource('tasks', TaskController::class);
 
-    Route::patch(
-        '/tasks/{task}/status',
-        [TaskController::class, 'updateStatus']
-    );
-});
+        Route::patch(
+            '/tasks/{task}/status',
+            [TaskController::class, 'updateStatus']
+        );
+    });
+
+
+    // Route::middleware('auth:sanctum')->group(function () {
+
+    //     Route::apiResource('organizations', OrganizationController::class);
+    
+    //     Route::apiResource('projects', ProjectController::class);
+    
+    //     Route::apiResource('tasks', TaskController::class);
+    
+    //     Route::patch(
+    //         '/tasks/{task}/status',
+    //         [TaskController::class, 'updateStatus']
+    //     );
+    // });

@@ -4,20 +4,346 @@
 
 <div class="mb-4">
 
-    <h1>Dashboard</h1>
+    {{-- Dashboard Header --}}
+    <div class="d-flex justify-content-between align-items-center">
 
-    <hr>
+        <div>
 
-    <h4>
-        Welcome, {{ session('user_name') }}
-    </h4>
+            <h1>Dashboard</h1>
 
-    <p>
-        Role:
-        <strong>
-            {{ ucfirst(session('user_role')) }}
-        </strong>
-    </p>
+            <hr>
+
+            <h4>
+                Welcome, {{ session('user_name') }}
+            </h4>
+
+            <p>
+                Role:
+                <strong>
+                    {{ ucfirst(session('user_role')) }}
+                </strong>
+            </p>
+
+        </div>
+
+        {{-- Export Task Report --}}
+        <div>
+
+            <a
+                href="{{ route('reports.tasks.export') }}"
+                class="btn btn-success"
+            >
+                Export Task Report
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- DASHBOARD STATISTICS --}}
+{{-- ========================================================= --}}
+
+<div class="row mb-4">
+
+    {{-- Total Projects --}}
+    <div class="col-md-6 col-lg-3 mb-3">
+
+        <div class="card shadow h-100">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Total Projects
+                </h6>
+
+                <h2 class="mb-0">
+                    {{ $totalProjects }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {{-- Total Tasks --}}
+    <div class="col-md-6 col-lg-3 mb-3">
+
+        <div class="card shadow h-100">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Total Tasks
+                </h6>
+
+                <h2 class="mb-0">
+                    {{ $totalTasks }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {{-- Completed Tasks --}}
+    <div class="col-md-6 col-lg-3 mb-3">
+
+        <div class="card shadow h-100">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Completed Tasks
+                </h6>
+
+                <h2 class="mb-0">
+                    {{ $completedTasks }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {{-- Pending Tasks --}}
+    <div class="col-md-6 col-lg-3 mb-3">
+
+        <div class="card shadow h-100">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Pending Tasks
+                </h6>
+
+                <h2 class="mb-0">
+                    {{ $pendingTasks }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- OVERDUE TASKS --}}
+{{-- ========================================================= --}}
+
+<div class="row mb-4">
+
+    <div class="col-md-6 col-lg-3 mb-3">
+
+        <div class="card shadow h-100">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+                    Overdue Tasks
+                </h6>
+
+                <h2 class="mb-0">
+                    {{ $overdueTasks }}
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- TASKS BY PRIORITY --}}
+{{-- ========================================================= --}}
+
+<div class="card shadow mb-4">
+
+    <div class="card-header bg-info text-white">
+
+        <h4 class="mb-0">
+            Tasks by Priority
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            {{-- Low Priority --}}
+            <div class="col-md-4 mb-3">
+
+                <div class="card border-success h-100">
+
+                    <div class="card-body">
+
+                        <h6 class="text-muted">
+                            Low Priority
+                        </h6>
+
+                        <h2 class="mb-0">
+                            {{ $lowPriorityTasks }}
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- Medium Priority --}}
+            <div class="col-md-4 mb-3">
+
+                <div class="card border-warning h-100">
+
+                    <div class="card-body">
+
+                        <h6 class="text-muted">
+                            Medium Priority
+                        </h6>
+
+                        <h2 class="mb-0">
+                            {{ $mediumPriorityTasks }}
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- High Priority --}}
+            <div class="col-md-4 mb-3">
+
+                <div class="card border-danger h-100">
+
+                    <div class="card-body">
+
+                        <h6 class="text-muted">
+                            High Priority
+                        </h6>
+
+                        <h2 class="mb-0">
+                            {{ $highPriorityTasks }}
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- TASKS BY STATUS --}}
+{{-- ========================================================= --}}
+
+<div class="card shadow mb-4">
+
+    <div class="card-header bg-secondary text-white">
+
+        <h4 class="mb-0">
+            Tasks by Status
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            {{-- To Do --}}
+            <div class="col-md-4 mb-3">
+
+                <div class="card border-secondary h-100">
+
+                    <div class="card-body">
+
+                        <h6 class="text-muted">
+                            To Do
+                        </h6>
+
+                        <h2 class="mb-0">
+                            {{ $todoTasks }}
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- In Progress --}}
+            <div class="col-md-4 mb-3">
+
+                <div class="card border-info h-100">
+
+                    <div class="card-body">
+
+                        <h6 class="text-muted">
+                            In Progress
+                        </h6>
+
+                        <h2 class="mb-0">
+                            {{ $inProgressTasks }}
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- Completed --}}
+            <div class="col-md-4 mb-3">
+
+                <div class="card border-success h-100">
+
+                    <div class="card-body">
+
+                        <h6 class="text-muted">
+                            Completed
+                        </h6>
+
+                        <h2 class="mb-0">
+                            {{ $completedStatusTasks }}
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 
@@ -84,21 +410,13 @@
 
                             <tr>
 
-                                <th>
-                                    Project
-                                </th>
+                                <th>Project</th>
 
-                                <th>
-                                    Description
-                                </th>
+                                <th>Description</th>
 
-                                <th>
-                                    Status
-                                </th>
+                                <th>Status</th>
 
-                                <th>
-                                    Action
-                                </th>
+                                <th>Action</th>
 
                             </tr>
 
@@ -111,29 +429,41 @@
                                 <tr>
 
                                     <td>
+
                                         <strong>
                                             {{ $project->title }}
                                         </strong>
+
                                     </td>
 
                                     <td>
-
                                         {{ $project->description }}
-
                                     </td>
 
                                     <td>
 
                                         @php
+
                                             $status = $project->status;
 
                                             if ($status instanceof \BackedEnum) {
+
                                                 $status = $status->value;
+
                                             }
+
                                         @endphp
 
                                         <span class="badge bg-primary">
-                                            {{ ucwords(str_replace('_', ' ', $status)) }}
+
+                                            {{ ucwords(
+                                                str_replace(
+                                                    '_',
+                                                    ' ',
+                                                    $status
+                                                )
+                                            ) }}
+
                                         </span>
 
                                     </td>
@@ -141,7 +471,10 @@
                                     <td>
 
                                         <a
-                                            href="{{ route('projects.show', $project->id) }}"
+                                            href="{{ route(
+                                                'projects.show',
+                                                $project->id
+                                            ) }}"
                                             class="btn btn-info btn-sm"
                                         >
                                             View
@@ -251,21 +584,13 @@
 
                             <tr>
 
-                                <th>
-                                    Project
-                                </th>
+                                <th>Project</th>
 
-                                <th>
-                                    Description
-                                </th>
+                                <th>Description</th>
 
-                                <th>
-                                    Status
-                                </th>
+                                <th>Status</th>
 
-                                <th>
-                                    Action
-                                </th>
+                                <th>Action</th>
 
                             </tr>
 
@@ -278,9 +603,11 @@
                                 <tr>
 
                                     <td>
+
                                         <strong>
                                             {{ $project->title }}
                                         </strong>
+
                                     </td>
 
                                     <td>
@@ -290,15 +617,27 @@
                                     <td>
 
                                         @php
+
                                             $status = $project->status;
 
                                             if ($status instanceof \BackedEnum) {
+
                                                 $status = $status->value;
+
                                             }
+
                                         @endphp
 
                                         <span class="badge bg-primary">
-                                            {{ ucwords(str_replace('_', ' ', $status)) }}
+
+                                            {{ ucwords(
+                                                str_replace(
+                                                    '_',
+                                                    ' ',
+                                                    $status
+                                                )
+                                            ) }}
+
                                         </span>
 
                                     </td>
@@ -306,7 +645,10 @@
                                     <td>
 
                                         <a
-                                            href="{{ route('projects.show', $project->id) }}"
+                                            href="{{ route(
+                                                'projects.show',
+                                                $project->id
+                                            ) }}"
                                             class="btn btn-info btn-sm"
                                         >
                                             View
@@ -329,6 +671,155 @@
         </div>
 
     @endif
+
+@endif
+
+
+{{-- ========================================================= --}}
+{{-- EMPLOYEE PERFORMANCE SUMMARY --}}
+{{-- ========================================================= --}}
+
+@if(
+    session('user_role') === 'admin' ||
+    session('user_role') === 'manager'
+)
+
+    <div class="card shadow mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4 class="mb-0">
+                Employee Performance Summary
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            @if(isset($employeePerformance) && $employeePerformance->count() > 0)
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover align-middle">
+
+                        <thead class="table-dark">
+
+                            <tr>
+
+                                <th>
+                                    Employee
+                                </th>
+
+                                <th>
+                                    Total Tasks
+                                </th>
+
+                                <th>
+                                    Completed
+                                </th>
+
+                                <th>
+                                    To Do
+                                </th>
+
+                                <th>
+                                    In Progress
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach($employeePerformance as $performance)
+
+                                <tr>
+
+                                    {{-- Employee Name --}}
+                                    <td>
+
+                                        <strong>
+                                            {{ $performance['employee']->name }}
+                                        </strong>
+
+                                        <br>
+
+                                        <small class="text-muted">
+                                            {{ $performance['employee']->email }}
+                                        </small>
+
+                                    </td>
+
+
+                                    {{-- Total Tasks --}}
+                                    <td>
+
+                                        <span class="badge bg-primary">
+                                            {{ $performance['total_tasks'] }}
+                                        </span>
+
+                                    </td>
+
+
+                                    {{-- Completed --}}
+                                    <td>
+
+                                        <span class="badge bg-success">
+                                            {{ $performance['completed_tasks'] }}
+                                        </span>
+
+                                    </td>
+
+
+                                    {{-- To Do --}}
+                                    <td>
+
+                                        <span class="badge bg-secondary">
+                                            {{ $performance['pending_tasks'] }}
+                                        </span>
+
+                                    </td>
+
+
+                                    {{-- In Progress --}}
+                                    <td>
+
+                                        <span class="badge bg-info text-dark">
+                                            {{ $performance['in_progress_tasks'] }}
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            @else
+
+                <div class="alert alert-info mb-0">
+
+                    <strong>
+                        No employees found.
+                    </strong>
+
+                    <br>
+
+                    There are currently no employees in your organization.
+
+                </div>
+
+            @endif
+
+        </div>
+
+    </div>
 
 @endif
 
@@ -382,7 +873,11 @@
                     <div class="col-md-6">
 
                         <p class="mb-1">
-                            <strong>Organization:</strong>
+
+                            <strong>
+                                Organization:
+                            </strong>
+
                         </p>
 
                         <p>
@@ -397,7 +892,11 @@
                         <div class="col-md-6">
 
                             <p class="mb-1">
-                                <strong>Admin:</strong>
+
+                                <strong>
+                                    Admin:
+                                </strong>
+
                             </p>
 
                             <p>
@@ -455,21 +954,13 @@
 
                             <tr>
 
-                                <th>
-                                    Project
-                                </th>
+                                <th>Project</th>
 
-                                <th>
-                                    Description
-                                </th>
+                                <th>Description</th>
 
-                                <th>
-                                    Status
-                                </th>
+                                <th>Status</th>
 
-                                <th>
-                                    Action
-                                </th>
+                                <th>Action</th>
 
                             </tr>
 
@@ -490,9 +981,7 @@
                                     </td>
 
                                     <td>
-
                                         {{ $project->description }}
-
                                     </td>
 
                                     <td>
@@ -502,7 +991,9 @@
                                             $status = $project->status;
 
                                             if ($status instanceof \BackedEnum) {
+
                                                 $status = $status->value;
+
                                             }
 
                                         @endphp
@@ -604,33 +1095,19 @@
 
                             <tr>
 
-                                <th>
-                                    Task
-                                </th>
+                                <th>Task</th>
 
-                                <th>
-                                    Project
-                                </th>
+                                <th>Project</th>
 
-                                <th>
-                                    Organization
-                                </th>
+                                <th>Organization</th>
 
-                                <th>
-                                    Due Date
-                                </th>
+                                <th>Due Date</th>
 
-                                <th>
-                                    Priority
-                                </th>
+                                <th>Priority</th>
 
-                                <th>
-                                    Status
-                                </th>
+                                <th>Status</th>
 
-                                <th>
-                                    Action
-                                </th>
+                                <th>Action</th>
 
                             </tr>
 
@@ -656,9 +1133,7 @@
                                             <br>
 
                                             <small class="text-muted">
-
                                                 {{ $task->description }}
-
                                             </small>
 
                                         @endif
@@ -735,11 +1210,12 @@
                                             $priority = $task->priority;
 
                                             if ($priority instanceof \BackedEnum) {
+
                                                 $priority = $priority->value;
+
                                             }
 
                                         @endphp
-
 
                                         <span class="badge bg-warning text-dark">
 
@@ -759,11 +1235,12 @@
                                             $status = $task->status;
 
                                             if ($status instanceof \BackedEnum) {
+
                                                 $status = $status->value;
+
                                             }
 
                                         @endphp
-
 
                                         <span class="badge bg-primary">
 
@@ -834,5 +1311,182 @@
     </div>
 
 @endif
+
+{{-- TASK STATUS CHART --}}
+<div class="card shadow mb-4">
+
+    <div class="card-header bg-dark text-white">
+
+        <h4 class="mb-0">
+            Task Status Chart
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+        <div style="max-width: 500px; margin: auto;">
+
+            <canvas id="taskStatusChart"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+{{-- CHART.JS --}}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    const taskStatusChart = document
+        .getElementById('taskStatusChart');
+
+    new Chart(taskStatusChart, {
+
+        type: 'pie',
+
+        data: {
+
+            labels: [
+                'To Do',
+                'In Progress',
+                'Completed'
+            ],
+
+            datasets: [{
+
+                label: 'Tasks',
+
+                data: [
+                    {{ $todoTasks }},
+                    {{ $inProgressTasks }},
+                    {{ $completedStatusTasks }}
+                ]
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            plugins: {
+
+                legend: {
+
+                    position: 'bottom'
+
+                }
+
+            }
+
+        }
+
+    });
+
+</script>
+
+
+{{-- ========================================================= --}}
+{{-- TASK PRIORITY CHART --}}
+{{-- ========================================================= --}}
+
+<div class="card shadow mb-4">
+
+    <div class="card-header bg-info text-white">
+
+        <h4 class="mb-0">
+            Task Priority Chart
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+        <div style="max-width: 700px; margin: auto;">
+
+            <canvas id="taskPriorityChart"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{{-- ========================================================= --}}
+{{-- PRIORITY CHART JAVASCRIPT --}}
+{{-- ========================================================= --}}
+
+<script>
+
+    const taskPriorityChart = document
+        .getElementById('taskPriorityChart');
+
+    new Chart(taskPriorityChart, {
+
+        type: 'bar',
+
+        data: {
+
+            labels: [
+                'Low',
+                'Medium',
+                'High'
+            ],
+
+            datasets: [{
+
+                label: 'Tasks by Priority',
+
+                data: [
+                    {{ $lowPriorityTasks }},
+                    {{ $mediumPriorityTasks }},
+                    {{ $highPriorityTasks }}
+                ]
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    ticks: {
+
+                        stepSize: 1
+
+                    }
+
+                }
+
+            },
+
+            plugins: {
+
+                legend: {
+
+                    position: 'bottom'
+
+                }
+
+            }
+
+        }
+
+    });
+
+</script>
+
 
 @endsection

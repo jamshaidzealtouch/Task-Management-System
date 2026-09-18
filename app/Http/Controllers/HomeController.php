@@ -38,7 +38,9 @@ class HomeController extends Controller
             }
 
             $tasks = Task::with([
-                'project.organization'
+                'project.organization',
+                'creator',
+                'assignee'
             ])
                 ->where('assignee_id', $userId)
                 ->latest()
@@ -59,6 +61,22 @@ class HomeController extends Controller
                 )
                     ->latest()
                     ->get();
+
+                $tasks = Task::whereHas('project', function ($query) use ($organization) {
+
+                    $query->where(
+                        'organization_id',
+                        $organization->id
+                    );
+
+                })
+                    ->with([
+                        'project.organization',
+                        'creator',
+                        'assignee'
+                    ])
+                    ->latest()
+                    ->get();
             }
         }
 
@@ -77,6 +95,111 @@ class HomeController extends Controller
                 )
                     ->latest()
                     ->get();
+
+                $tasks = Task::whereHas('project', function ($query) use ($organization) {
+
+                    $query->where(
+                        'organization_id',
+                        $organization->id
+                    );
+
+                })
+                    ->with([
+                        'project.organization',
+                        'creator',
+                        'assignee'
+                    ])
+                    ->latest()
+                    ->get();
+            }
+        }
+
+        $totalProjects = $projects->count();
+
+        $totalTasks = $tasks->count();
+
+        $completedTasks = $tasks
+            ->where('status', 'completed')
+            ->count();
+
+        $pendingTasks = $tasks
+            ->where('status', 'to_do')
+            ->count();
+
+        $overdueTasks = $tasks
+            ->where('due_date', '<', now())
+            ->where('status', '!=', 'completed')
+            ->count();
+
+        $lowPriorityTasks = $tasks
+            ->where('priority', 'low')
+            ->count();
+
+        $mediumPriorityTasks = $tasks
+            ->where('priority', 'medium')
+            ->count();
+
+        $highPriorityTasks = $tasks
+            ->where('priority', 'high')
+            ->count();
+
+        $todoTasks = $tasks
+            ->where('status', 'to_do')
+            ->count();
+
+        $inProgressTasks = $tasks
+            ->where('status', 'in_progress')
+            ->count();
+
+        $completedStatusTasks = $tasks
+            ->where('status', 'completed')
+            ->count();
+
+        $employeePerformance = collect();
+
+        if ($userRole === 'admin' || $userRole === 'manager') {
+
+            $employees = User::where(
+                'organization_id',
+                $organization?->id
+            )
+                ->where('role', 'employee')
+                ->get();
+
+            foreach ($employees as $employee) {
+
+                $employeeTasks = $tasks->where(
+                    'assignee_id',
+                    $employee->id
+                );
+
+                $totalEmployeeTasks = $employeeTasks->count();
+
+                $completedEmployeeTasks = $employeeTasks
+                    ->where('status', 'completed')
+                    ->count();
+
+                $pendingEmployeeTasks = $employeeTasks
+                    ->where('status', 'to_do')
+                    ->count();
+
+                $inProgressEmployeeTasks = $employeeTasks
+                    ->where('status', 'in_progress')
+                    ->count();
+
+                $employeePerformance->push([
+
+                    'employee' => $employee,
+
+                    'total_tasks' => $totalEmployeeTasks,
+
+                    'completed_tasks' => $completedEmployeeTasks,
+
+                    'pending_tasks' => $pendingEmployeeTasks,
+
+                    'in_progress_tasks' => $inProgressEmployeeTasks,
+
+                ]);
             }
         }
 
@@ -87,7 +210,19 @@ class HomeController extends Controller
                 'organization',
                 'admin',
                 'projects',
-                'tasks'
+                'tasks',
+                'totalProjects',
+                'totalTasks',
+                'completedTasks',
+                'pendingTasks',
+                'overdueTasks',
+                'lowPriorityTasks',
+                'mediumPriorityTasks',
+                'highPriorityTasks',
+                'todoTasks',
+                'inProgressTasks',
+                'completedStatusTasks',
+                'employeePerformance'
             )
         );
     }

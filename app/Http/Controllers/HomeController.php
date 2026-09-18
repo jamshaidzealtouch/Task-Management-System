@@ -15,7 +15,7 @@ class HomeController extends Controller
     {
         $userId = session('user_id');
         $userRole = session('user_role');
-
+//dashboard service
         $data = $this->dashboardService->getDashboardData(
             $userId,
             $userRole
@@ -23,7 +23,7 @@ class HomeController extends Controller
 
         return view('home', $data);
     }
-
+//about page 
     public function about()
     {
         return view('about');

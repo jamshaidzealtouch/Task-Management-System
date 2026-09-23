@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreOrganizationRequest;
+use App\Http\Requests\UpdateOrganizationRequest;
 use App\Http\Resources\OrganizationResource;
 use App\Models\Organization;
 use App\Services\OrganizationService;
-use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
 {
@@ -35,14 +36,10 @@ class OrganizationController extends Controller
         ], 200);
     }
 
-    public function store(Request $request)
+    public function store(StoreOrganizationRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
         $organization = $this->organizationService->create(
-            $request->only('name'),
+            $request->validated(),
             $request->user()
         );
 
@@ -52,15 +49,13 @@ class OrganizationController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, Organization $organization)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
+    public function update(
+        UpdateOrganizationRequest $request,
+        Organization $organization
+    ) {
         $organization = $this->organizationService->update(
             $organization,
-            $request->only('name')
+            $request->validated()
         );
 
         return response()->json([
@@ -78,4 +73,3 @@ class OrganizationController extends Controller
         ], 200);
     }
 }
-

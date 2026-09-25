@@ -2,31 +2,37 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\Organization;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\User;
 
 class DashboardService
 {
     public function getDashboardData($userId, $userRole)
     {
+        // Get currently logged-in user
         $user = User::findOrFail($userId);
 
         $organization = null;
         $admin = null;
         $projects = collect();
-        $tasks = collect();
 
+   
+        $tasksQuery = Task::query();
 
+      
         if ($userRole === 'employee') {
 
+            // Get employee organization
             $organization = Organization::find($user->organization_id);
 
             if ($organization) {
 
+                // Get organization admin/owner
                 $admin = User::find($organization->owner_id);
 
+                // Get organization projects
                 $projects = Project::where(
                     'organization_id',
                     $user->organization_id
@@ -35,124 +41,97 @@ class DashboardService
                     ->get();
             }
 
-            $tasks = Task::with([
-                'project.organization',
-                'creator',
-                'assignee'
-            ])
-                ->where('assignee_id', $userId)
-                ->latest()
-                ->get();
+            $tasksQuery->where('assignee_id', $userId);
         }
-
         elseif ($userRole === 'manager') {
 
+            // Get manager organization
             $organization = Organization::find($user->organization_id);
 
             if ($organization) {
 
+                // Get organization admin/owner
                 $admin = User::find($organization->owner_id);
 
+                // Get organization projects
                 $projects = Project::where(
                     'organization_id',
-                    $user->organization_id
+                    $organization->id
                 )
                     ->latest()
                     ->get();
 
-                    $tasks = Task::whereHas('project', function ($query) use ($organization) {
+                // Manager can see all tasks of organization projects
+                $tasksQuery->whereHas('project', function ($query) use ($organization) {
 
-                        $query->where(
-                            'organization_id',
-                            $organization->id
-                        );
-    
-                    })
-                        ->with([
-                            'project.organization',
-                            'creator',
-                            'assignee'
-                        ])
-                        ->latest()
-                        ->get();
-                }
-            }
-
-            elseif ($userRole === 'admin') {
-
-                $organization = Organization::where(
-                    'owner_id',
-                    $userId
-                )->first();
-
-                if ($organization) {
-
-                    $projects = Project::where(
+                    $query->where(
                         'organization_id',
                         $organization->id
-                    )
-                        ->latest()
-                        ->get();
+                    );
 
-                        $tasks = Task::whereHas('project', function ($query) use ($organization) {
-
-                            $query->where(
-                                'organization_id',
-                                $organization->id
-                            );
-
-                        })
-                        ->with([
-                            'project.organization',
-                            'creator',
-                            'assignee'
-                        ])
-                        ->latest()
-                        ->get();
-                }
+                });
             }
+        }
 
-            $totalProjects = $projects->count();
+        elseif ($userRole === 'admin') {
 
-            $totalTasks = $tasks->count();
-    
-            $completedTasks = $tasks
-                ->where('status', 'completed')
-                ->count();
-    
-            $pendingTasks = $tasks
-                ->where('status', 'to_do')
-                ->count();
-    
-            $overdueTasks = $tasks
-                ->where('due_date', '<', now())
-                ->where('status', '!=', 'completed')
-                ->count();
+            // Find organization owned by admin
+            $organization = Organization::where(
+                'owner_id',
+                $userId
+            )->first();
 
+            if ($organization) {
 
-        $lowPriorityTasks = $tasks
-        ->where('priority', 'low')
-        ->count();
+                // Get organization projects
+                $projects = Project::where(
+                    'organization_id',
+                    $organization->id
+                )
+                    ->latest()
+                    ->get();
 
-    $mediumPriorityTasks = $tasks
-        ->where('priority', 'medium')
-        ->count();
+                // Admin can see all tasks of organization projects
+                $tasksQuery->whereHas('project', function ($query) use ($organization) {
 
-    $highPriorityTasks = $tasks
-        ->where('priority', 'high')
-        ->count();
+                    $query->where(
+                        'organization_id',
+                        $organization->id
+                    );
 
-        $todoTasks = $tasks
-        ->where('status', 'to_do')
-        ->count();
+                });
+            }
+        }
 
-    $inProgressTasks = $tasks
-        ->where('status', 'in_progress')
-        ->count();
+        $tasks = (clone $tasksQuery)
+            ->with([
+                'project.organization',
+                'creator',
+                'assignee',
+            ])
+            ->latest()
+            ->get();
 
-    $completedStatusTasks = $tasks
-        ->where('status', 'completed')
-        ->count();
+        // Total projects
+        $totalProjects = $projects->count();
+
+        // Total tasks
+        $totalTasks = (clone $tasksQuery)->count();
+
+        $statusCounts = (clone $tasksQuery)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $priorityCounts = (clone $tasksQuery)
+            ->selectRaw('priority, COUNT(*) as count')
+            ->groupBy('priority')
+            ->pluck('count', 'priority');
+
+        $overdueTasks = (clone $tasksQuery)
+            ->where('due_date', '<', now())
+            ->where('status', '!=', 'completed')
+            ->count();
 
         $employeePerformance = collect();
 
@@ -167,6 +146,7 @@ class DashboardService
 
             foreach ($employees as $employee) {
 
+                // Get tasks assigned to this employee
                 $employeeTasks = $tasks->where(
                     'assignee_id',
                     $employee->id
@@ -174,22 +154,26 @@ class DashboardService
 
                 $employeePerformance->push([
 
+                    // Employee information
                     'employee' => $employee,
 
+                    // Total tasks
                     'total_tasks' => $employeeTasks->count(),
 
+                    // Completed tasks
                     'completed_tasks' => $employeeTasks
                         ->where('status', 'completed')
                         ->count(),
 
+                    // To-do tasks
                     'pending_tasks' => $employeeTasks
                         ->where('status', 'to_do')
                         ->count(),
 
-                        'in_progress_tasks' => $employeeTasks
+                    // In-progress tasks
+                    'in_progress_tasks' => $employeeTasks
                         ->where('status', 'in_progress')
                         ->count(),
-
                 ]);
             }
         }
@@ -202,17 +186,10 @@ class DashboardService
             'tasks',
             'totalProjects',
             'totalTasks',
-            'completedTasks',
-            'pendingTasks',
+            'statusCounts',
+            'priorityCounts',
             'overdueTasks',
-            'lowPriorityTasks',
-            'mediumPriorityTasks',
-            'highPriorityTasks',
-            'todoTasks',
-            'inProgressTasks',
-            'completedStatusTasks',
             'employeePerformance'
-
         );
     }
 }

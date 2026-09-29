@@ -7,10 +7,14 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class TaskResource extends JsonResource
 {
+    /**
+     * Transform the task into an API response.
+     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
+
             'project_id' => $this->project_id,
             'created_by' => $this->created_by,
             'assignee_id' => $this->assignee_id,
@@ -18,6 +22,14 @@ class TaskResource extends JsonResource
 
             'title' => $this->title,
             'description' => $this->description,
+
+            // Uploaded file information
+            'attachment_path' => $this->attachment_path,
+
+            'attachment_url' => $this->attachment_path
+                ? asset('storage/' . $this->attachment_path)
+                : null,
+
             'due_date' => $this->due_date,
             'priority' => $this->priority,
             'status' => $this->status,

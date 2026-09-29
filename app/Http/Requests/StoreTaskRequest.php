@@ -18,15 +18,15 @@ class StoreTaskRequest extends FormRequest
     {
         return [
 
-            'project_id' => [
-                'required',
-                'exists:projects,id',
-            ],
+            // 'project_id' => [
+            //     'required',
+            //     'exists:projects,id',
+            // ],
 
-            'created_by' => [
-                'required',
-                'exists:users,id',
-            ],
+            // 'created_by' => [
+            //     'required',
+            //     'exists:users,id',
+            // ],
 
             'assignee_id' => [
                 'nullable',
@@ -48,6 +48,12 @@ class StoreTaskRequest extends FormRequest
             'description' => [
                 'required',
                 'string',
+            ],
+            'attachment' => [
+                'nullable',
+                'file',
+                'mimes:pdf,doc,docx,jpg,jpeg,png',
+                'max:2048',
             ],
 
             'due_date' => [

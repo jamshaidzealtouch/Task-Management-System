@@ -38,6 +38,7 @@
         <form
             action="{{ route('projects.tasks.store', $project->id) }}"
             method="POST"
+            enctype="multipart/form-data"
         >
 
             @csrf
@@ -72,6 +73,27 @@
                     rows="4"
                     placeholder="Enter task description"
                 >{{ old('description') }}</textarea>
+
+            </div>
+
+            {{-- Attachment --}}
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Attachment
+                </label>
+
+                <input
+                    type="file"
+                    name="attachment"
+                    class="form-control"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                >
+
+                <small class="text-muted">
+                    Allowed files: PDF, DOC, DOCX, JPG, JPEG, PNG.
+                    Maximum size: 2 MB.
+                </small>
 
             </div>
 

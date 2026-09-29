@@ -51,6 +51,7 @@
         <form
             action="{{ route('projects.tasks.update', [$project->id, $task->id]) }}"
             method="POST"
+            enctype="multipart/form-data"
         >
 
             @csrf
@@ -112,6 +113,71 @@
                 >{{ old('description', $task->description) }}</textarea>
 
                 @error('description')
+
+                    <div class="text-danger mt-1">
+                        {{ $message }}
+                    </div>
+
+                @enderror
+
+            </div>
+
+            {{-- ========================================= --}}
+            {{-- Attachment --}}
+            {{-- ========================================= --}}
+
+            <div class="mb-3">
+
+                <label
+                    for="attachment"
+                    class="form-label"
+                >
+                    Attachment
+                </label>
+
+                {{-- Current Attachment --}}
+                @if($task->attachment_path)
+
+                    <div class="mb-2">
+
+                        <span class="text-muted">
+                            Current attachment:
+                        </span>
+
+                        <a
+                            href="{{ asset('storage/' . $task->attachment_path) }}"
+                            target="_blank"
+                            class="btn btn-sm btn-outline-primary ms-2"
+                        >
+                            View Current File
+                        </a>
+
+                    </div>
+
+                @else
+
+                    <div class="text-muted mb-2">
+                        No attachment uploaded.
+                    </div>
+
+                @endif
+
+                {{-- New Attachment --}}
+                <input
+                    type="file"
+                    name="attachment"
+                    id="attachment"
+                    class="form-control"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                >
+
+                <small class="text-muted">
+                    Upload a new file only if you want to replace the current attachment.
+                    Allowed: PDF, DOC, DOCX, JPG, JPEG, PNG.
+                    Maximum size: 2 MB.
+                </small>
+
+                @error('attachment')
 
                     <div class="text-danger mt-1">
                         {{ $message }}

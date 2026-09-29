@@ -105,7 +105,7 @@
                 </h6>
 
                 <h2 class="mb-0">
-                    {{ $completedTasks }}
+                    {{ $statusCounts->get('completed', 0) }}
                 </h2>
 
             </div>
@@ -127,7 +127,7 @@
                 </h6>
 
                 <h2 class="mb-0">
-                    {{ $pendingTasks }}
+                    {{ $statusCounts->get('to_do', 0) }}
                 </h2>
 
             </div>
@@ -198,7 +198,7 @@
                         </h6>
 
                         <h2 class="mb-0">
-                            {{ $lowPriorityTasks }}
+                            {{ $priorityCounts->get('low', 0) }}
                         </h2>
 
                     </div>
@@ -220,7 +220,7 @@
                         </h6>
 
                         <h2 class="mb-0">
-                            {{ $mediumPriorityTasks }}
+                            {{ $priorityCounts->get('medium', 0) }}
                         </h2>
 
                     </div>
@@ -242,7 +242,7 @@
                         </h6>
 
                         <h2 class="mb-0">
-                            {{ $highPriorityTasks }}
+                            {{ $priorityCounts->get('high', 0) }}
                         </h2>
 
                     </div>
@@ -288,7 +288,7 @@
                         </h6>
 
                         <h2 class="mb-0">
-                            {{ $todoTasks }}
+                            {{ $statusCounts->get('to_do', 0) }}
                         </h2>
 
                     </div>
@@ -310,7 +310,7 @@
                         </h6>
 
                         <h2 class="mb-0">
-                            {{ $inProgressTasks }}
+                            {{ $statusCounts->get('in_progress', 0) }}
                         </h2>
 
                     </div>
@@ -332,7 +332,7 @@
                         </h6>
 
                         <h2 class="mb-0">
-                            {{ $completedStatusTasks }}
+                            {{ $statusCounts->get('completed', 0) }}
                         </h2>
 
                     </div>
@@ -1312,7 +1312,11 @@
 
 @endif
 
+
+{{-- ========================================================= --}}
 {{-- TASK STATUS CHART --}}
+{{-- ========================================================= --}}
+
 <div class="card shadow mb-4">
 
     <div class="card-header bg-dark text-white">
@@ -1334,7 +1338,11 @@
     </div>
 
 </div>
+
+
+{{-- ========================================================= --}}
 {{-- CHART.JS --}}
+{{-- ========================================================= --}}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -1360,9 +1368,9 @@
                 label: 'Tasks',
 
                 data: [
-                    {{ $todoTasks }},
-                    {{ $inProgressTasks }},
-                    {{ $completedStatusTasks }}
+                    {{ $statusCounts->get('to_do', 0) }},
+                    {{ $statusCounts->get('in_progress', 0) }},
+                    {{ $statusCounts->get('completed', 0) }}
                 ]
 
             }]
@@ -1443,9 +1451,9 @@
                 label: 'Tasks by Priority',
 
                 data: [
-                    {{ $lowPriorityTasks }},
-                    {{ $mediumPriorityTasks }},
-                    {{ $highPriorityTasks }}
+                    {{ $priorityCounts->get('low', 0) }},
+                    {{ $priorityCounts->get('medium', 0) }},
+                    {{ $priorityCounts->get('high', 0) }}
                 ]
 
             }]

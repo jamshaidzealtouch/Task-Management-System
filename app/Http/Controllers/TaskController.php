@@ -8,6 +8,7 @@ use App\Models\Task;
 use App\Models\Project;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\TaskService;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
@@ -245,89 +246,89 @@ class TaskController extends Controller
 
 
     // Store Task
-
     public function store(
         StoreTaskRequest $request,
-        Project $project
+        Project $project,
+        TaskService $taskService
     ) {
-        $this->checkProjectAccess($project);
-
-        $userRole = session('user_role');
-
-        if (
-            $userRole !== 'admin' &&
-            $userRole !== 'manager'
-        ) {
-            abort(403);
-        }
-
+        // Get validated form data.
         $data = $request->validated();
-
-        // Default Assignment Status
-
-        $assignmentStatus = 'accepted';
-
-
-        // Validate Assignee
-
-        if (!empty($data['assignee_id'])) {
-
-            $employee = User::where(
-                'id',
-                $data['assignee_id']
-            )
-                ->where(
-                    'role',
-                    'employee'
-                )
-                ->whereHas(
-                    'projects',
-                    function ($query) use ($project) {
-                        $query->where(
-                            'projects.id',
-                            $project->id
-                        );
-                    }
-                )
-                ->first();
-
-            if (!$employee) {
-                abort(403);
-            }
-
-
-            // Check Primary Project
-
-            if (
-                $employee->primary_project_id !=
-                $project->id
-            ) {
-                $assignmentStatus = 'pending';
-            }
+    
+        /*
+        |--------------------------------------------------------------------------
+        | Handle uploaded attachment
+        |--------------------------------------------------------------------------
+        | StoreTaskRequest validation validates the file, but we explicitly
+        | get the UploadedFile from the request so TaskService can store it.
+        */
+        if ($request->hasFile('attachment')) {
+    
+            $data['attachment'] = $request->file('attachment');
         }
-
-
-        // Create Task
-
+    
+        /*
+        |--------------------------------------------------------------------------
+        | Assignment Status
+        |--------------------------------------------------------------------------
+        | When a task is created from the project page, we consider the
+        | assignment accepted by default.
+        */
+        $assignmentStatus = 'accepted';
+    
+        /*
+        |--------------------------------------------------------------------------
+        | Employee Assignment
+        |--------------------------------------------------------------------------
+        */
+        if (!empty($data['assignee_id'])) {
+    
+            $employee = User::find($data['assignee_id']);
+    
+            if (!$employee) {
+    
+                return back()
+                    ->withInput()
+                    ->with('error', 'Selected employee does not exist.');
+            }
+    
+            // Make sure selected user is an employee.
+            if ($employee->role?->value !== 'employee') {
+    
+                return back()
+                    ->withInput()
+                    ->with('error', 'Only employees can be assigned to tasks.');
+            }
+    
+            $assignmentStatus = 'accepted';
+        }
+    
+        /*
+        |--------------------------------------------------------------------------
+        | Add Project and Creator
+        |--------------------------------------------------------------------------
+        | These values come from the route and logged-in session.
+        */
         $data['project_id'] = $project->id;
+    
         $data['created_by'] = session('user_id');
+    
         $data['assignment_status'] = $assignmentStatus;
-
-        Task::create($data);
-
+    
+        /*
+        |--------------------------------------------------------------------------
+        | Create Task
+        |--------------------------------------------------------------------------
+        | TaskService will:
+        | 1. Store the uploaded file.
+        | 2. Save its path in attachment_path.
+        | 3. Create the task.
+        */
+        $taskService->createTask($data);
+    
         return redirect()
-            ->route(
-                'projects.tasks.index',
-                $project->id
-            )
-            ->with(
-                'success',
-                $assignmentStatus === 'pending'
-                    ? 'Task assigned successfully. Waiting for employee acceptance.'
-                    : 'Task added successfully.'
-            );
+            ->route('projects.tasks.index', $project->id)
+            ->with('success', 'Task assigned successfully.');
     }
-
 
     // Show Task
 
@@ -406,7 +407,8 @@ class TaskController extends Controller
     public function update(
         UpdateTaskRequest $request,
         Project $project,
-        Task $task
+        Task $task,
+        TaskService $taskService
     ) {
         $this->checkTaskAccess(
             $project,
@@ -496,9 +498,24 @@ class TaskController extends Controller
         }
 
 
-        // Update Task
+        /*
+        |--------------------------------------------------------------------------
+        | Update Task Through TaskService
+        |--------------------------------------------------------------------------
+        |
+        | If a new attachment is uploaded:
+        |
+        | 1. Old attachment is deleted.
+        | 2. New attachment is stored.
+        | 3. New attachment path is saved.
+        |
+        */
 
-        $task->update($data);
+        $taskService->updateTask(
+            $task,
+            $data
+        );
+
 
         return redirect()
             ->route(

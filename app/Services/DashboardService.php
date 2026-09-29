@@ -14,6 +14,8 @@ class DashboardService
         // Get currently logged-in user
         $user = User::findOrFail($userId);
 
+        $notifications = $user->notifications;
+
         $organization = null;
         $admin = null;
         $projects = collect();
@@ -189,6 +191,7 @@ class DashboardService
             'statusCounts',
             'priorityCounts',
             'overdueTasks',
+            'notifications',
             'employeePerformance'
         );
     }

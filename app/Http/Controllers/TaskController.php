@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Services\TaskService;
 use Illuminate\Http\Request;
+use App\Notifications\TaskAssignedNotification;
 
 class TaskController extends Controller
 {
@@ -38,18 +39,12 @@ class TaskController extends Controller
         )->get();
     }
 
-
-    // Get First User Organization
-
     private function getUserOrganization()
     {
         return $this
             ->getUserOrganizations()
             ->firstOrFail();
     }
-
-
-    // Check Project Access
 
     private function checkProjectAccess(Project $project)
     {
@@ -60,8 +55,6 @@ class TaskController extends Controller
             $project->organization_id
         );
 
-        // Admin
-
         if ($userRole === 'admin') {
 
             if ($organization->owner_id != $userId) {
@@ -70,10 +63,6 @@ class TaskController extends Controller
 
             return $organization;
         }
-
-
-        // Manager
-
         if ($userRole === 'manager') {
 
             $hasAccess = Project::where(
@@ -97,10 +86,6 @@ class TaskController extends Controller
 
             return $organization;
         }
-
-
-        // Employee
-
         if ($userRole === 'employee') {
 
             $hasAccess = Project::where(
@@ -127,10 +112,6 @@ class TaskController extends Controller
 
         abort(403);
     }
-
-
-    // Check Task Access
-
     private function checkTaskAccess(
         Project $project,
         Task $task
@@ -150,10 +131,6 @@ class TaskController extends Controller
 
         return true;
     }
-
-
-    // Task List
-
     public function index(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -198,10 +175,6 @@ class TaskController extends Controller
             )
         );
     }
-
-
-    // Create Task
-
     public function create(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -244,42 +217,20 @@ class TaskController extends Controller
         );
     }
 
-
-    // Store Task
     public function store(
         StoreTaskRequest $request,
         Project $project,
         TaskService $taskService
     ) {
-        // Get validated form data.
         $data = $request->validated();
     
-        /*
-        |--------------------------------------------------------------------------
-        | Handle uploaded attachment
-        |--------------------------------------------------------------------------
-        | StoreTaskRequest validation validates the file, but we explicitly
-        | get the UploadedFile from the request so TaskService can store it.
-        */
         if ($request->hasFile('attachment')) {
     
             $data['attachment'] = $request->file('attachment');
         }
     
-        /*
-        |--------------------------------------------------------------------------
-        | Assignment Status
-        |--------------------------------------------------------------------------
-        | When a task is created from the project page, we consider the
-        | assignment accepted by default.
-        */
         $assignmentStatus = 'accepted';
     
-        /*
-        |--------------------------------------------------------------------------
-        | Employee Assignment
-        |--------------------------------------------------------------------------
-        */
         if (!empty($data['assignee_id'])) {
     
             $employee = User::find($data['assignee_id']);
@@ -301,36 +252,28 @@ class TaskController extends Controller
     
             $assignmentStatus = 'accepted';
         }
-    
-        /*
-        |--------------------------------------------------------------------------
-        | Add Project and Creator
-        |--------------------------------------------------------------------------
-        | These values come from the route and logged-in session.
-        */
+
         $data['project_id'] = $project->id;
     
         $data['created_by'] = session('user_id');
     
         $data['assignment_status'] = $assignmentStatus;
     
-        /*
-        |--------------------------------------------------------------------------
-        | Create Task
-        |--------------------------------------------------------------------------
-        | TaskService will:
-        | 1. Store the uploaded file.
-        | 2. Save its path in attachment_path.
-        | 3. Create the task.
-        */
         $taskService->createTask($data);
+
+        if (!empty($data['assignee_id'])){
+            $employee= User::find ($data['assignee_id']);
+
+            if ($employee){
+
+                $employee->notify(new TaskAssignedNotification());
+        }
+        }
     
         return redirect()
             ->route('projects.tasks.index', $project->id)
             ->with('success', 'Task assigned successfully.');
     }
-
-    // Show Task
 
     public function show(
         Project $project,
@@ -349,9 +292,6 @@ class TaskController extends Controller
             )
         );
     }
-
-
-    // Edit Task
 
     public function edit(
         Project $project,
@@ -401,9 +341,6 @@ class TaskController extends Controller
         );
     }
 
-
-    // Update Task
-
     public function update(
         UpdateTaskRequest $request,
         Project $project,
@@ -418,9 +355,6 @@ class TaskController extends Controller
         $userRole = session('user_role');
 
         $data = $request->validated();
-
-
-        // Employee Can Only Update Status
 
         if ($userRole === 'employee') {
 
@@ -446,18 +380,12 @@ class TaskController extends Controller
                 );
         }
 
-
-        // Admin / Manager
-
         if (
             $userRole !== 'admin' &&
             $userRole !== 'manager'
         ) {
             abort(403);
         }
-
-
-        // Validate New Assignee
 
         if (!empty($data['assignee_id'])) {
 
@@ -484,9 +412,6 @@ class TaskController extends Controller
                 abort(403);
             }
 
-
-            // Assignment Status
-
             if (
                 $employee->primary_project_id !=
                 $project->id
@@ -497,19 +422,6 @@ class TaskController extends Controller
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Update Task Through TaskService
-        |--------------------------------------------------------------------------
-        |
-        | If a new attachment is uploaded:
-        |
-        | 1. Old attachment is deleted.
-        | 2. New attachment is stored.
-        | 3. New attachment path is saved.
-        |
-        */
 
         $taskService->updateTask(
             $task,
@@ -561,10 +473,6 @@ class TaskController extends Controller
                 'Task deleted successfully.'
             );
     }
-
-
-    // Trash
-
     public function trash(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -594,9 +502,6 @@ class TaskController extends Controller
             )
         );
     }
-
-
-    // Restore
 
     public function restore(
         Project $project,
@@ -632,10 +537,6 @@ class TaskController extends Controller
                 'Task restored successfully.'
             );
     }
-
-
-    // My Tasks Dashboard
-
     public function myTasks()
     {
         $userId = session('user_id');
@@ -644,9 +545,6 @@ class TaskController extends Controller
         if ($userRole !== 'employee') {
             abort(403);
         }
-
-
-        // Pending Tasks
 
         $pendingTasks = Task::with([
             'project.organization',
@@ -662,9 +560,6 @@ class TaskController extends Controller
             )
             ->latest()
             ->get();
-
-
-        // Accepted Tasks
 
         $tasks = Task::with([
             'project.organization',
@@ -689,9 +584,6 @@ class TaskController extends Controller
             )
         );
     }
-
-
-    // Accept Task
 
     public function acceptTask(Task $task)
     {
@@ -726,9 +618,6 @@ class TaskController extends Controller
             );
     }
 
-
-    // Reject Task
-
     public function rejectTask(Task $task)
     {
         $userId = session('user_id');
@@ -762,9 +651,6 @@ class TaskController extends Controller
             );
     }
 
-
-    // Employee Task Status
-
     public function updateMyTaskStatus(
         Request $request,
         Task $task
@@ -781,7 +667,6 @@ class TaskController extends Controller
         }
 
 
-        // Only Accepted Tasks Can Change Status
 
         if ($task->assignment_status !== 'accepted') {
             abort(403);

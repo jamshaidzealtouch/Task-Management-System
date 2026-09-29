@@ -411,11 +411,8 @@
                             <tr>
 
                                 <th>Project</th>
-
                                 <th>Description</th>
-
                                 <th>Status</th>
-
                                 <th>Action</th>
 
                             </tr>
@@ -585,11 +582,8 @@
                             <tr>
 
                                 <th>Project</th>
-
                                 <th>Description</th>
-
                                 <th>Status</th>
-
                                 <th>Action</th>
 
                             </tr>
@@ -706,25 +700,11 @@
 
                             <tr>
 
-                                <th>
-                                    Employee
-                                </th>
-
-                                <th>
-                                    Total Tasks
-                                </th>
-
-                                <th>
-                                    Completed
-                                </th>
-
-                                <th>
-                                    To Do
-                                </th>
-
-                                <th>
-                                    In Progress
-                                </th>
+                                <th>Employee</th>
+                                <th>Total Tasks</th>
+                                <th>Completed</th>
+                                <th>To Do</th>
+                                <th>In Progress</th>
 
                             </tr>
 
@@ -736,7 +716,6 @@
 
                                 <tr>
 
-                                    {{-- Employee Name --}}
                                     <td>
 
                                         <strong>
@@ -751,8 +730,6 @@
 
                                     </td>
 
-
-                                    {{-- Total Tasks --}}
                                     <td>
 
                                         <span class="badge bg-primary">
@@ -761,8 +738,6 @@
 
                                     </td>
 
-
-                                    {{-- Completed --}}
                                     <td>
 
                                         <span class="badge bg-success">
@@ -771,8 +746,6 @@
 
                                     </td>
 
-
-                                    {{-- To Do --}}
                                     <td>
 
                                         <span class="badge bg-secondary">
@@ -781,8 +754,6 @@
 
                                     </td>
 
-
-                                    {{-- In Progress --}}
                                     <td>
 
                                         <span class="badge bg-info text-dark">
@@ -929,6 +900,85 @@
 
 
     {{-- ===================================================== --}}
+    {{-- EMPLOYEE NOTIFICATIONS --}}
+    {{-- ===================================================== --}}
+
+    <div class="card shadow mb-4">
+
+        <div class="card-header bg-warning text-dark">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h4 class="mb-0">
+                    🔔 Notifications
+                </h4>
+
+                @if(isset($notifications))
+
+                    <span class="badge bg-dark">
+                        {{ $notifications->count() }}
+                    </span>
+
+                @endif
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            @if(isset($notifications) && $notifications->count() > 0)
+
+                <div class="list-group">
+
+                    @foreach($notifications as $notification)
+
+                        <div class="list-group-item">
+
+                            <strong>
+                                🔔 Notification
+                            </strong>
+
+                            <p class="mb-1">
+
+                                {{ $notification->data['message'] ?? 'You have a new notification.' }}
+
+                            </p>
+
+                            <small class="text-muted">
+
+                                {{ $notification->created_at->format('Y-m-d H:i') }}
+
+                            </small>
+
+                        </div>
+
+                    @endforeach
+
+                </div>
+
+            @else
+
+                <div class="alert alert-info mb-0">
+
+                    <strong>
+                        No notifications.
+                    </strong>
+
+                    <br>
+
+                    You currently don't have any notifications.
+
+                </div>
+
+            @endif
+
+        </div>
+
+    </div>
+
+
+    {{-- ===================================================== --}}
     {{-- EMPLOYEE ORGANIZATION PROJECTS --}}
     {{-- ===================================================== --}}
 
@@ -955,11 +1005,8 @@
                             <tr>
 
                                 <th>Project</th>
-
                                 <th>Description</th>
-
                                 <th>Status</th>
-
                                 <th>Action</th>
 
                             </tr>
@@ -1096,17 +1143,11 @@
                             <tr>
 
                                 <th>Task</th>
-
                                 <th>Project</th>
-
                                 <th>Organization</th>
-
                                 <th>Due Date</th>
-
                                 <th>Priority</th>
-
                                 <th>Status</th>
-
                                 <th>Action</th>
 
                             </tr>

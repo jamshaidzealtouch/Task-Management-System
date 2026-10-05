@@ -81,6 +81,22 @@ class TaskService
     }
 
     /**
+ * Update task status.
+ */
+public function updateTaskStatus(Task $task, array $data): Task
+{
+    $task->update([
+        'status' => $data['status'],
+    ]);
+
+    return $task->load([
+        'project',
+        'creator',
+        'assignee',
+    ]);
+}
+
+    /**
      * Delete a task.
      */
     public function deleteTask(Task $task): void

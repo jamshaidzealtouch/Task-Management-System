@@ -3,8 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\ProjectStatus;
+use App\Models\Organization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Project>
+ */
 class ProjectFactory extends Factory
 {
     public function definition(): array
@@ -20,7 +24,7 @@ class ProjectFactory extends Factory
 
         return [
             // Project belongs to an organization.
-            'organization_id' => 1,
+            'organization_id' => Organization::factory(),
 
             'title' => $this->faker->sentence(3),
 

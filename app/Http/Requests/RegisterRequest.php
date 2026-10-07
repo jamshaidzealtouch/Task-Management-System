@@ -33,10 +33,10 @@ class RegisterRequest extends FormRequest
                 'min:4',
                 'confirmed',
             ],
-            'role' => [
-    'required',
-    'in:admin,manager,employee',
-],
+//             'role' => [
+//     'required',
+//     'in:admin,manager,employee',
+// ],
         ];
     }
 }

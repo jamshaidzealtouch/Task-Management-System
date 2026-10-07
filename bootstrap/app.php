@@ -17,12 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
             'auth.custom' => \App\Http\Middleware\AuthenticateMiddleware::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
-
             'manager' => \App\Http\Middleware\ManagerMiddleware::class,
-
             'employee' => \App\Http\Middleware\EmployeeMiddleware::class,
 
         ]);
+
+        $middleware->trustProxies(at: '*');
 
     })
     ->withExceptions(function (Exceptions $exceptions): void {

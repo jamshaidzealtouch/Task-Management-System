@@ -10,7 +10,7 @@ class ProjectSeeder extends Seeder
     public function run(): void
     {
         Project::factory()
-            ->count(7)
+            ->count(3)
             ->hasTasks(5)
             ->create();
     }

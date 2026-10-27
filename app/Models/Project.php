@@ -7,10 +7,11 @@ use App\Enums\ProjectStatus;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\Task;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Invitation;
 
 class Project extends Model
-{
+{  use HasFactory;
     protected $fillable = [
         'title',
         'description',

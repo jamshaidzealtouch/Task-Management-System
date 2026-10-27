@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
-use App\Enums\TaskStatus;
-use App\Enums\TaskPriority;
 
 class StoreTaskRequest extends FormRequest
 {
@@ -17,12 +17,49 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'project_id' => [
+                'required',
+                'exists:projects,id',
+            ],
 
-            'title' => 'required|max:255',
+            'created_by' => [
+                'required',
+                'exists:users,id',
+            ],
 
-            'description' => 'required',
+            'assignee_id' => [
+                'nullable',
+                'exists:users,id',
+            ],
 
-            'due_date' => 'required|date',
+            'assignment_status' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'required',
+                'string',
+            ],
+
+            'attachment' => [
+                'nullable',
+                'file',
+                'mimes:pdf,doc,docx,jpg,jpeg,png',
+                'max:2048',
+            ],
+
+            'due_date' => [
+                'required',
+                'date',
+            ],
 
             'priority' => [
                 'required',
@@ -32,11 +69,6 @@ class StoreTaskRequest extends FormRequest
             'status' => [
                 'required',
                 new Enum(TaskStatus::class),
-            ],
-
-            'assignee_id' => [
-                'nullable',
-                'exists:users,id',
             ],
         ];
     }

@@ -10,6 +10,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\ProjectUserController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\ReportController;
 
 // Public Routes
 Route::get('/', [LoginController::class, 'index']);
@@ -49,6 +50,13 @@ Route::middleware('auth.custom')->group(function () {
 
     Route::get('/about', [HomeController::class, 'about'])
         ->name('about');
+
+        Route::get(
+            '/reports/tasks/export',
+            [ReportController::class, 'exportTasks']
+        )
+            ->middleware('auth.custom')
+            ->name('reports.tasks.export');
 
     // Organizations
     Route::resource('organizations', OrganizationController::class);

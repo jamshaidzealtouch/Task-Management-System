@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ProjectStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class StoreProjectRequest extends FormRequest
 {
@@ -10,11 +12,11 @@ class StoreProjectRequest extends FormRequest
     {
         return true;
     }
-//project add rule 
+
+    // Project creation validation
     public function rules(): array
     {
         return [
-
             'organization_id' => [
                 'required',
                 'integer',
@@ -45,9 +47,8 @@ class StoreProjectRequest extends FormRequest
 
             'status' => [
                 'required',
-                'string',
+                new Enum(ProjectStatus::class),
             ],
-
         ];
     }
 }

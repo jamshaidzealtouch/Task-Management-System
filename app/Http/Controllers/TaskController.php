@@ -8,7 +8,9 @@ use App\Models\Task;
 use App\Models\Project;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\TaskService;
 use Illuminate\Http\Request;
+use App\Notifications\TaskAssignedNotification;
 
 class TaskController extends Controller
 {
@@ -37,18 +39,12 @@ class TaskController extends Controller
         )->get();
     }
 
-
-    // Get First User Organization
-
     private function getUserOrganization()
     {
         return $this
             ->getUserOrganizations()
             ->firstOrFail();
     }
-
-
-    // Check Project Access
 
     private function checkProjectAccess(Project $project)
     {
@@ -59,8 +55,6 @@ class TaskController extends Controller
             $project->organization_id
         );
 
-        // Admin
-
         if ($userRole === 'admin') {
 
             if ($organization->owner_id != $userId) {
@@ -69,10 +63,6 @@ class TaskController extends Controller
 
             return $organization;
         }
-
-
-        // Manager
-
         if ($userRole === 'manager') {
 
             $hasAccess = Project::where(
@@ -96,10 +86,6 @@ class TaskController extends Controller
 
             return $organization;
         }
-
-
-        // Employee
-
         if ($userRole === 'employee') {
 
             $hasAccess = Project::where(
@@ -126,10 +112,6 @@ class TaskController extends Controller
 
         abort(403);
     }
-
-
-    // Check Task Access
-
     private function checkTaskAccess(
         Project $project,
         Task $task
@@ -149,10 +131,6 @@ class TaskController extends Controller
 
         return true;
     }
-
-
-    // Task List
-
     public function index(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -197,10 +175,6 @@ class TaskController extends Controller
             )
         );
     }
-
-
-    // Create Task
-
     public function create(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -243,93 +217,63 @@ class TaskController extends Controller
         );
     }
 
-
-    // Store Task
-
     public function store(
         StoreTaskRequest $request,
-        Project $project
+        Project $project,
+        TaskService $taskService
     ) {
-        $this->checkProjectAccess($project);
-
-        $userRole = session('user_role');
-
-        if (
-            $userRole !== 'admin' &&
-            $userRole !== 'manager'
-        ) {
-            abort(403);
-        }
-
         $data = $request->validated();
-
-        // Default Assignment Status
-
-        $assignmentStatus = 'accepted';
-
-
-        // Validate Assignee
-
-        if (!empty($data['assignee_id'])) {
-
-            $employee = User::where(
-                'id',
-                $data['assignee_id']
-            )
-                ->where(
-                    'role',
-                    'employee'
-                )
-                ->whereHas(
-                    'projects',
-                    function ($query) use ($project) {
-                        $query->where(
-                            'projects.id',
-                            $project->id
-                        );
-                    }
-                )
-                ->first();
-
-            if (!$employee) {
-                abort(403);
-            }
-
-
-            // Check Primary Project
-
-            if (
-                $employee->primary_project_id !=
-                $project->id
-            ) {
-                $assignmentStatus = 'pending';
-            }
+    
+        if ($request->hasFile('attachment')) {
+    
+            $data['attachment'] = $request->file('attachment');
         }
-
-
-        // Create Task
+    
+        $assignmentStatus = 'accepted';
+    
+        if (!empty($data['assignee_id'])) {
+    
+            $employee = User::find($data['assignee_id']);
+    
+            if (!$employee) {
+    
+                return back()
+                    ->withInput()
+                    ->with('error', 'Selected employee does not exist.');
+            }
+    
+            // Make sure selected user is an employee.
+            if ($employee->role?->value !== 'employee') {
+    
+                return back()
+                    ->withInput()
+                    ->with('error', 'Only employees can be assigned to tasks.');
+            }
+    
+            $assignmentStatus = 'accepted';
+        }
 
         $data['project_id'] = $project->id;
+    
         $data['created_by'] = session('user_id');
+    
         $data['assignment_status'] = $assignmentStatus;
+    
+        $taskService->createTask($data);
 
-        Task::create($data);
+        if (!empty($data['assignee_id'])){
+            $employee= User::find ($data['assignee_id']);
 
+            if ($employee){
+
+                $employee->notify(new TaskAssignedNotification());
+        }
+        }
+    
         return redirect()
-            ->route(
-                'projects.tasks.index',
-                $project->id
-            )
-            ->with(
-                'success',
-                $assignmentStatus === 'pending'
-                    ? 'Task assigned successfully. Waiting for employee acceptance.'
-                    : 'Task added successfully.'
-            );
+            ->route('projects.tasks.index', $project->id)
+            ->with('success', 'Task assigned successfully.');
     }
-
-
-    // Show Task
 
     public function show(
         Project $project,
@@ -348,9 +292,6 @@ class TaskController extends Controller
             )
         );
     }
-
-
-    // Edit Task
 
     public function edit(
         Project $project,
@@ -400,13 +341,11 @@ class TaskController extends Controller
         );
     }
 
-
-    // Update Task
-
     public function update(
         UpdateTaskRequest $request,
         Project $project,
-        Task $task
+        Task $task,
+        TaskService $taskService
     ) {
         $this->checkTaskAccess(
             $project,
@@ -416,9 +355,6 @@ class TaskController extends Controller
         $userRole = session('user_role');
 
         $data = $request->validated();
-
-
-        // Employee Can Only Update Status
 
         if ($userRole === 'employee') {
 
@@ -444,18 +380,12 @@ class TaskController extends Controller
                 );
         }
 
-
-        // Admin / Manager
-
         if (
             $userRole !== 'admin' &&
             $userRole !== 'manager'
         ) {
             abort(403);
         }
-
-
-        // Validate New Assignee
 
         if (!empty($data['assignee_id'])) {
 
@@ -482,9 +412,6 @@ class TaskController extends Controller
                 abort(403);
             }
 
-
-            // Assignment Status
-
             if (
                 $employee->primary_project_id !=
                 $project->id
@@ -496,9 +423,11 @@ class TaskController extends Controller
         }
 
 
-        // Update Task
+        $taskService->updateTask(
+            $task,
+            $data
+        );
 
-        $task->update($data);
 
         return redirect()
             ->route(
@@ -544,10 +473,6 @@ class TaskController extends Controller
                 'Task deleted successfully.'
             );
     }
-
-
-    // Trash
-
     public function trash(Project $project)
     {
         $this->checkProjectAccess($project);
@@ -577,9 +502,6 @@ class TaskController extends Controller
             )
         );
     }
-
-
-    // Restore
 
     public function restore(
         Project $project,
@@ -615,10 +537,6 @@ class TaskController extends Controller
                 'Task restored successfully.'
             );
     }
-
-
-    // My Tasks Dashboard
-
     public function myTasks()
     {
         $userId = session('user_id');
@@ -627,9 +545,6 @@ class TaskController extends Controller
         if ($userRole !== 'employee') {
             abort(403);
         }
-
-
-        // Pending Tasks
 
         $pendingTasks = Task::with([
             'project.organization',
@@ -645,9 +560,6 @@ class TaskController extends Controller
             )
             ->latest()
             ->get();
-
-
-        // Accepted Tasks
 
         $tasks = Task::with([
             'project.organization',
@@ -672,9 +584,6 @@ class TaskController extends Controller
             )
         );
     }
-
-
-    // Accept Task
 
     public function acceptTask(Task $task)
     {
@@ -709,9 +618,6 @@ class TaskController extends Controller
             );
     }
 
-
-    // Reject Task
-
     public function rejectTask(Task $task)
     {
         $userId = session('user_id');
@@ -745,9 +651,6 @@ class TaskController extends Controller
             );
     }
 
-
-    // Employee Task Status
-
     public function updateMyTaskStatus(
         Request $request,
         Task $task
@@ -764,7 +667,6 @@ class TaskController extends Controller
         }
 
 
-        // Only Accepted Tasks Can Change Status
 
         if ($task->assignment_status !== 'accepted') {
             abort(403);

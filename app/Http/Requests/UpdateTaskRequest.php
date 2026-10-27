@@ -13,30 +13,65 @@ class UpdateTaskRequest extends FormRequest
     {
         return true;
     }
-//when update task 
+
     public function rules(): array
     {
         return [
 
-            'title' => 'required|max:255',
+            'project_id' => [
+                'sometimes',
+                'required',
+                'exists:projects,id',
+            ],
 
-            'description' => 'required',
+            'created_by' => [
+                'sometimes',
+                'required',
+                'exists:users,id',
+            ],
 
-            'due_date' => 'required|date',
+            'assignee_id' => [
+                'sometimes',
+                'nullable',
+                'exists:users,id',
+            ],
+
+            'assignment_status' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
+            'title' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'sometimes',
+                'required',
+                'string',
+            ],
+
+            'due_date' => [
+                'sometimes',
+                'required',
+                'date',
+            ],
 
             'priority' => [
+                'sometimes',
                 'required',
                 new Enum(TaskPriority::class),
             ],
 
             'status' => [
+                'sometimes',
                 'required',
                 new Enum(TaskStatus::class),
-            ],
-
-            'assignee_id' => [
-                'nullable',
-                'exists:users,id',
             ],
         ];
     }

@@ -96,9 +96,6 @@ public function updateTaskStatus(Task $task, array $data): Task
     ]);
 }
 
-    /**
-     * Delete a task.
-     */
     public function deleteTask(Task $task): void
     {
         $task->delete();
